@@ -58,10 +58,32 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 4b5c6b0484bbec243a1f5f5e504134e8, type: 3}
       propertyPath: m_Name
-      value: crate
+      value: Paper Bag
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4b5c6b0484bbec243a1f5f5e504134e8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7843099443767660413}
   m_SourcePrefab: {fileID: 100100000, guid: 4b5c6b0484bbec243a1f5f5e504134e8, type: 3}
+--- !u!1 &6294815554891248008 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4b5c6b0484bbec243a1f5f5e504134e8, type: 3}
+  m_PrefabInstance: {fileID: 6600804484323495129}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7843099443767660413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6294815554891248008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97f5f5f7db1d42941b54bd97d4e25c6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemType: 11
+  count: 1

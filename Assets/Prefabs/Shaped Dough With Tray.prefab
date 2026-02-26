@@ -2082,7 +2082,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 89b6abefae3be1c499efecf08914e809, type: 3}
       propertyPath: m_Name
-      value: icecream_container
+      value: Shaped Dough With Tray
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2177,13 +2177,35 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 89b6abefae3be1c499efecf08914e809, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1746454153455611989}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 89b6abefae3be1c499efecf08914e809, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4822210372568451310}
   m_SourcePrefab: {fileID: 100100000, guid: 89b6abefae3be1c499efecf08914e809, type: 3}
 --- !u!4 &8350388575514804421 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 89b6abefae3be1c499efecf08914e809, type: 3}
   m_PrefabInstance: {fileID: 8388010757731067694}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8694580088642607743 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 89b6abefae3be1c499efecf08914e809, type: 3}
+  m_PrefabInstance: {fileID: 8388010757731067694}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4822210372568451310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8694580088642607743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97f5f5f7db1d42941b54bd97d4e25c6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemType: 8
+  count: 1
 --- !u!1001 &8400071341570146014
 PrefabInstance:
   m_ObjectHideFlags: 0

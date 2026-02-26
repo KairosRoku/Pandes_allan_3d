@@ -62,7 +62,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5d3642cf97b4f354ea23ddf57f15a8f2, type: 3}
       propertyPath: m_Name
-      value: food_ingredient_dough (1)
+      value: Dough Shape
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -70,13 +70,52 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5d3642cf97b4f354ea23ddf57f15a8f2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5989292902118760734}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d3642cf97b4f354ea23ddf57f15a8f2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 261612113902343685}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d3642cf97b4f354ea23ddf57f15a8f2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -4148229351231808745}
   m_SourcePrefab: {fileID: 100100000, guid: 5d3642cf97b4f354ea23ddf57f15a8f2, type: 3}
 --- !u!4 &6074447295862663178 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5d3642cf97b4f354ea23ddf57f15a8f2, type: 3}
   m_PrefabInstance: {fileID: 6036649638126456801}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6847464904657056432 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 5d3642cf97b4f354ea23ddf57f15a8f2, type: 3}
+  m_PrefabInstance: {fileID: 6036649638126456801}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &261612113902343685
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6847464904657056432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97f5f5f7db1d42941b54bd97d4e25c6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemType: 0
+  count: 1
+--- !u!114 &-4148229351231808745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6847464904657056432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97f5f5f7db1d42941b54bd97d4e25c6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemType: 5
+  count: 1
 --- !u!1001 &6094644990857955061
 PrefabInstance:
   m_ObjectHideFlags: 0
