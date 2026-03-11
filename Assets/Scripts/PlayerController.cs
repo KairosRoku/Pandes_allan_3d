@@ -150,7 +150,7 @@ public class PlayerController : MonoBehaviour
             {
                 // ONLY auto-interact with things that GIVE items (Supply stations)
                 // We do NOT want to auto-interact with machines (DoughMaker) or counters
-                if (currentInteractable is IngredientRack || currentInteractable is DoughBin || currentInteractable is Dispenser)
+                if (currentInteractable is IngredientRack || currentInteractable is DoughBin || currentInteractable is Dispenser || currentInteractable is TrayBin)
                 {
                     currentInteractable.Interact(this);
                 }
@@ -182,6 +182,7 @@ public class PlayerController : MonoBehaviour
         heldItem.transform.SetParent(holdPoint);
         heldItem.transform.localPosition = Vector3.zero;
         heldItem.transform.localRotation = Quaternion.identity;
+        heldItem.transform.localScale = Vector3.one; // Reset scale to avoid inheritance issues
 
         // Disable physics if any
         if (heldItem.TryGetComponent<Rigidbody>(out var rb))

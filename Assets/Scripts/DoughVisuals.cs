@@ -6,6 +6,8 @@ public class DoughVisuals : MonoBehaviour
     public GameObject rolledModel;
     public GameObject shapedModel;
     public GameObject trayModel;
+    public GameObject bakedModel;
+    public GameObject burntModel;
 
     private ItemData itemData;
 
@@ -28,6 +30,8 @@ public class DoughVisuals : MonoBehaviour
         if(rolledModel) rolledModel.SetActive(false);
         if(shapedModel) shapedModel.SetActive(false);
         if(trayModel) trayModel.SetActive(false);
+        if(bakedModel) bakedModel.SetActive(false);
+        if(burntModel) burntModel.SetActive(false);
 
         // Show based on state
         switch (itemData.itemType)
@@ -45,6 +49,21 @@ public class DoughVisuals : MonoBehaviour
                 if(shapedModel) shapedModel.SetActive(true);
                 if(trayModel) trayModel.SetActive(true);
                 break;
+            case ItemType.BakedPandesalTray:
+                if(bakedModel) bakedModel.SetActive(true);
+                if(trayModel) trayModel.SetActive(true);
+                break;
+            case ItemType.BurntPandesalTray:
+                if(burntModel) burntModel.SetActive(true);
+                if(trayModel) trayModel.SetActive(true);
+                break;
+        }
+
+        // Safety check: if everything is still hidden, log it
+        bool anyActive = (rawModel && rawModel.activeSelf) || (rolledModel && rolledModel.activeSelf) || (shapedModel && shapedModel.activeSelf) || (trayModel && trayModel.activeSelf) || (bakedModel && bakedModel.activeSelf) || (burntModel && burntModel.activeSelf);
+        if(!anyActive)
+        {
+            Debug.LogWarning($"[DoughVisuals] No models active for itemType: {itemData.itemType} on {gameObject.name}");
         }
     }
 }

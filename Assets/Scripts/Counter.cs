@@ -36,6 +36,7 @@ public class Counter : MonoBehaviour, IInteractable
         itemsSlot.transform.SetParent(itemPlacementPoint);
         itemsSlot.transform.localPosition = Vector3.zero;
         itemsSlot.transform.localRotation = Quaternion.identity;
+        itemsSlot.transform.localScale = Vector3.one; // Ensure consistent scale
         
         Debug.Log($"[COUNTER] Item {itemsSlot.name} placed at {itemPlacementPoint.name}. Counter is now OCCUPIED.");
     }

@@ -86,6 +86,10 @@ public class Oven : MonoBehaviour, IInteractable
         {
             data.itemType = type;
             // Visual Update...
+            if (currentTray.TryGetComponent<DoughVisuals>(out var visuals))
+            {
+                visuals.RefreshVisuals();
+            }
             Debug.Log("Oven: Tray is now " + type);
         }
     }
