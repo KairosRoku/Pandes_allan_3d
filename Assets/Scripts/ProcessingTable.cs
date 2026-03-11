@@ -1,134 +1,147 @@
 using UnityEngine;
 
+/// <summary>
+/// Processing Table — handles all dough transformation steps.
+///
+/// Each state transition DESTROYS the current prefab and INSTANTIATES the next
+/// one in its place. Each dough state is a standalone prefab with its own model.
+///
+///   Dough  ──(E)──►  DoughKnead  ──(E)──►  ShapedDough
+///   ShapedDough + Tray  ──(E)──►  TrayedShapedDough  ──► ready for Oven
+/// </summary>
 public class ProcessingTable : Counter
 {
+    [Header("Dough Stage Prefabs")]
+    [Tooltip("Prefab spawned after kneading raw dough.")]
     public GameObject doughKneadPrefab;
+
+    [Tooltip("Prefab spawned after shaping kneaded dough.")]
+    public GameObject shapedDoughPrefab;
+
+    [Tooltip("Prefab spawned after placing shaped dough on a tray.")]
+    public GameObject trayedShapedDoughPrefab;
+
+    // ---------------------------------------------------------------
+    // Counter overrides
+    // ---------------------------------------------------------------
 
     public override void Interact(PlayerController player)
     {
         if (player.IsHoldingItem())
         {
-            if (itemsSlot == null)
-            {
+            if (itemOnCounter == null)
                 PlaceItem(player);
-            }
             else
-            {
-                TryHandleSpecialInteraction(player);
-            }
+                TryHandleSpecialInteraction(player); // e.g. Tray combining
         }
         else
         {
-            if (itemsSlot != null)
+            if (itemOnCounter == null) return;
+
+            var data = itemOnCounter.GetComponentInChildren<ItemData>();
+            if (data != null)
             {
-                // Check if we can process it (Direct interactions for empty hands)
-                if (itemsSlot.TryGetComponent<ItemData>(out var data))
+                switch (data.itemType)
                 {
-                    if (data.itemType == ItemType.Dough)
-                    {
-                        TransformDough(ItemType.RolledDough);
-                        Debug.Log("[PROCESSING TABLE] Dough -> Rolled (dough shape)");
-                        return; // Done
-                    }
-                    else if (data.itemType == ItemType.RolledDough)
-                    {
-                        TransformDough(ItemType.ShapedDough);
-                        Debug.Log("[PROCESSING TABLE] Rolled -> Shaped");
-                        return; // Done
-                    }
+                    case ItemType.Dough:
+                        if (SwapPrefab(doughKneadPrefab, ItemType.DoughKnead, "Dough → Dough Knead")) return;
+                        break; // If swap fails (e.g. missing prefab), fall through to pick up
+
+                    case ItemType.DoughKnead:
+                        if (SwapPrefab(shapedDoughPrefab, ItemType.ShapedDough, "Dough Knead → Shaped Dough")) return;
+                        break;
                 }
-                
-                // If no special interaction, pick it up
-                PickUpItem(player);
             }
+
+            // Default: pick up whatever is on the table
+            PickUpItem(player);
         }
     }
 
-    protected override void PlaceItem(PlayerController player)
-    {
-        if (itemsSlot != null) return;
-
-        GameObject held = player.GetHeldItem();
-        if (held != null && held.TryGetComponent<ItemData>(out var data))
-        {
-            // Specifically handling placing a raw dough lump to transform it into the processing prefab
-            if (data.itemType == ItemType.Dough && doughKneadPrefab != null)
-            {
-                Destroy(player.RemoveHeldItem()); // Consume the raw inventory item
-                itemsSlot = Instantiate(doughKneadPrefab, itemPlacementPoint);
-                itemsSlot.transform.localPosition = Vector3.up * 0.01f; 
-                itemsSlot.transform.localRotation = Quaternion.identity;
-                itemsSlot.transform.localScale = Vector3.one; 
-                
-                // Ensure the spawned object is the right type
-                if (itemsSlot.TryGetComponent<ItemData>(out var newData))
-                {
-                    newData.itemType = ItemType.Dough;
-                }
-                
-                UpdateVisuals(ItemType.Dough);
-                Debug.Log("[PROCESSING TABLE] Placed raw dough; spawned knead prefab.");
-                return;
-            }
-        }
-
-        base.PlaceItem(player);
-    }
+    // ---------------------------------------------------------------
+    // Tray combination
+    // ---------------------------------------------------------------
 
     protected override void TryHandleSpecialInteraction(PlayerController player)
     {
-        // Handle Tray combination
+        if (itemOnCounter == null) return;
+        var tableData = itemOnCounter.GetComponentInChildren<ItemData>();
+        if (tableData == null) return;
+
+        if (tableData.itemType != ItemType.ShapedDough)
+        {
+            base.TryHandleSpecialInteraction(player);
+            return;
+        }
+
         GameObject held = player.GetHeldItem();
-        if (held != null && held.TryGetComponent<ItemData>(out var heldData))
+        if (held == null) return;
+        var heldData = held.GetComponentInChildren<ItemData>();
+        if (heldData == null || heldData.itemType != ItemType.Tray)
         {
-            if (heldData.itemType == ItemType.Tray)
-            {
-                if (itemsSlot != null && itemsSlot.TryGetComponent<ItemData>(out var tableData))
-                {
-                    if (tableData.itemType == ItemType.ShapedDough)
-                    {
-                        // Combine into Trayed Shaped Dough
-                        // IMPORTANT: RemoveHeldItem first (detaches from player) then Destroy
-                        GameObject trayToDestroy = player.RemoveHeldItem();
-                        Destroy(trayToDestroy);
-                        
-                        // Transform the dough on the table into a tray-carrying version
-                        TransformDough(ItemType.TrayedShapedDough);
-                        Debug.Log("[PROCESSING TABLE] Added Tray to Shaped Dough -> TrayedShapedDough!");
-                    }
-                }
-            }
+            base.TryHandleSpecialInteraction(player);
+            return;
         }
+
+        // Consume the tray, swap to trayed prefab
+        Destroy(player.RemoveHeldItem());
+        SwapPrefab(trayedShapedDoughPrefab, ItemType.TrayedShapedDough, "Shaped Dough + Tray → Trayed Shaped Dough");
     }
 
-    public void TransformDough(ItemType newType)
+    // ---------------------------------------------------------------
+    // Prefab swap helper
+    // ---------------------------------------------------------------
+
+    private bool SwapPrefab(GameObject prefab, ItemType expectedType, string logLabel)
     {
-        if (itemsSlot == null) return;
-        
-        if (itemsSlot.TryGetComponent<ItemData>(out var data))
+        if (prefab == null)
         {
-            data.itemType = newType;
-            UpdateVisuals(newType);
+            Debug.LogWarning($"[PROCESSING TABLE] Missing prefab for step: {logLabel}. Assign it in the Inspector.");
+            return false;
         }
+
+        if (prefab.GetComponent<Counter>() != null)
+        {
+            Debug.LogError($"[CRITICAL ASSIGNMENT ERROR] You accidentally assigned a Table/Counter to a Dough Prefab slot! The prefab '{prefab.name}' has a Counter script on it. Please assign the standalone dough mesh prefab instead.");
+            return false;
+        }
+
+        Destroy(itemOnCounter);
+        itemOnCounter = Instantiate(prefab);
+        SnapToPlacementPoint(itemOnCounter);
+
+        // Force the type to ensure the state machine advances even if the 
+        // user's assigned prefab had the wrong ItemType in the inspector.
+        var data = itemOnCounter.GetComponentInChildren<ItemData>();
+        if (data != null) data.itemType = expectedType;
+
+        Debug.Log($"[PROCESSING TABLE] {logLabel}");
+        return true;
     }
 
-    private void UpdateVisuals(ItemType type)
-    {
-        if (itemsSlot != null && itemsSlot.TryGetComponent<DoughVisuals>(out var visuals))
-        {
-            visuals.RefreshVisuals();
-        }
-    }
+    // ---------------------------------------------------------------
+    // Prompt text
+    // ---------------------------------------------------------------
 
     public override string GetInteractText()
     {
-        if (itemsSlot != null && itemsSlot.TryGetComponent<ItemData>(out var data))
+        if (itemOnCounter != null)
         {
-            if (data.itemType == ItemType.Dough) return "Knead the Dough";
-            if (data.itemType == ItemType.RolledDough) return "Shape the Dough";
-            if (data.itemType == ItemType.ShapedDough) return "Bring a Tray to load it";
-            if (data.itemType == ItemType.TrayedShapedDough) return "Pick Up Trayed Dough (Oven Ready!)";
+            var data = itemOnCounter.GetComponentInChildren<ItemData>();
+            if (data != null)
+            {
+                return data.itemType switch
+                {
+                    ItemType.Dough             => "Knead the Dough (E)",
+                    ItemType.DoughKnead        => "Shape the Dough (E)",
+                    ItemType.ShapedDough       => "Bring a Tray to load it (E)",
+                    ItemType.TrayedShapedDough => "Pick Up — Oven Ready! (E)",
+                    ItemType.BakedPandesalTray => "Pick Up (E) | Pack with Bag (E)",
+                    _                          => "Pick Up (E)"
+                };
+            }
         }
-        return base.GetInteractText();
+
+        return "Place Item (E)";
     }
 }

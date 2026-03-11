@@ -9,7 +9,7 @@ public enum ItemType
     Sugar,
     Water,
     Dough,
-    RolledDough,
+    DoughKnead,
     ShapedDough,
     Tray,
     TrayedShapedDough, // Shaped dough on a tray

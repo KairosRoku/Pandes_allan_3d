@@ -150,7 +150,7 @@ public class PlayerController : MonoBehaviour
             {
                 // ONLY auto-interact with things that GIVE items (Supply stations)
                 // We do NOT want to auto-interact with machines (DoughMaker) or counters
-                if (currentInteractable is IngredientRack || currentInteractable is DoughBin || currentInteractable is Dispenser || currentInteractable is TrayBin)
+                if (currentInteractable is IngredientRack || currentInteractable is DoughBin || currentInteractable is Dispenser || currentInteractable is TrayBin || currentInteractable is PaperBagBin)
                 {
                     currentInteractable.Interact(this);
                 }
@@ -178,20 +178,23 @@ public class PlayerController : MonoBehaviour
     {
         if (heldItem != null) return;
 
+        Counter.AutoFixBadPivots(item);
+
         heldItem = item;
-        heldItem.transform.SetParent(holdPoint);
+        heldItem.transform.SetParent(holdPoint, true);
         heldItem.transform.localPosition = Vector3.zero;
         heldItem.transform.localRotation = Quaternion.identity;
-        heldItem.transform.localScale = Vector3.one; // Reset scale to avoid inheritance issues
 
         // Disable physics if any
         if (heldItem.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.isKinematic = true;
         }
-        if (heldItem.TryGetComponent<Collider>(out var col))
+        
+        var colliders = heldItem.GetComponentsInChildren<Collider>();
+        foreach (var c in colliders)
         {
-            col.enabled = false;
+            c.enabled = false;
         }
     }
 
@@ -206,9 +209,12 @@ public class PlayerController : MonoBehaviour
             {
                 rb.isKinematic = false;
             }
-            if (item.TryGetComponent<Collider>(out var col))
+            
+            var colliders = item.GetComponentsInChildren<Collider>();
+            foreach (var c in colliders)
             {
-                col.enabled = true;
+                c.enabled = true;
+                c.isTrigger = false;
             }
         }
         return item;

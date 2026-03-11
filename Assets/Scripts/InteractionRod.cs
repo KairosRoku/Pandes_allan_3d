@@ -7,9 +7,11 @@ public class InteractionRod : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Try to find interactable in hierarchy
+        // Use GetComponentInParent so if the rod hits the dough (which is a child
+        // of itemPlacementPoint, which is a child of the counter), it correctly
+        // bubbles up and finds the Counter/ProcessingTable.
         IInteractable interactable = other.GetComponentInParent<IInteractable>();
-        
+
         if (interactable != null)
         {
             currentOverlaps.Add(interactable);
@@ -26,7 +28,6 @@ public class InteractionRod : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         IInteractable interactable = other.GetComponentInParent<IInteractable>();
-        if (interactable == null) interactable = other.GetComponent<IInteractable>();
 
         if (interactable != null)
         {

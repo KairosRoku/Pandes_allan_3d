@@ -1,64 +1,190 @@
 using UnityEngine;
 
+/// <summary>
+/// Base class for any counter/table in the kitchen.
+/// Holds a single item on its itemPlacementPoint.
+/// Subclasses override PlaceItem, PickUpItem, and TryHandleSpecialInteraction
+/// to add behaviour (e.g. dough processing, tray combining).
+/// </summary>
 public class Counter : MonoBehaviour, IInteractable
 {
+    [Tooltip("Where items are placed on this counter surface.")]
     public Transform itemPlacementPoint;
-    protected GameObject itemsSlot;
+
+    /// <summary>The item currently sitting on this counter. Null if empty.</summary>
+    protected GameObject itemOnCounter;
+
+    // ---------------------------------------------------------------
+    // IInteractable
+    // ---------------------------------------------------------------
 
     public virtual void Interact(PlayerController player)
     {
         if (player.IsHoldingItem())
         {
-            if (itemsSlot == null)
-            {
+            if (itemOnCounter == null)
                 PlaceItem(player);
-            }
             else
-            {
-                // Try to swap or combine (to be implemented in specific classes)
                 TryHandleSpecialInteraction(player);
-            }
         }
         else
         {
-            if (itemsSlot != null)
-            {
+            if (itemOnCounter != null)
                 PickUpItem(player);
+        }
+    }
+
+    protected virtual void Start()
+    {
+        // AUTO-FIX: If the user accidentally moved the itemPlacementPoint way off the table,
+        // snap it perfectly to the top-center surface of the physical table mesh.
+        if (itemPlacementPoint != null)
+        {
+            Renderer[] r = GetComponentsInChildren<Renderer>();
+            if (r.Length > 0)
+            {
+                Bounds b = r[0].bounds;
+                for (int i = 1; i < r.Length; i++)
+                {
+                    if (!r[i].transform.IsChildOf(itemPlacementPoint))
+                        b.Encapsulate(r[i].bounds);
+                }
+                
+                Vector3 properTop = b.center;
+                properTop.y = b.max.y; // The very top surface
+                
+                // If it's more than half a meter off from the visual top center, fix it
+                if (Vector3.Distance(itemPlacementPoint.position, properTop) > 0.5f)
+                {
+                    Debug.LogWarning($"[COUNTER] Auto-fixed {gameObject.name}'s itemPlacementPoint because it was too far off-center.");
+                    itemPlacementPoint.position = properTop;
+                }
             }
         }
     }
 
+    // ---------------------------------------------------------------
+    // Core helpers (overridable)
+    // ---------------------------------------------------------------
+
     protected virtual void PlaceItem(PlayerController player)
     {
-        if (itemsSlot != null) return; // Already occupied
+        if (itemOnCounter != null) return;
 
-        itemsSlot = player.RemoveHeldItem();
-        itemsSlot.transform.SetParent(itemPlacementPoint);
-        itemsSlot.transform.localPosition = Vector3.zero;
-        itemsSlot.transform.localRotation = Quaternion.identity;
-        itemsSlot.transform.localScale = Vector3.one; // Ensure consistent scale
-        
-        Debug.Log($"[COUNTER] Item {itemsSlot.name} placed at {itemPlacementPoint.name}. Counter is now OCCUPIED.");
+        itemOnCounter = player.RemoveHeldItem();
+        SnapToPlacementPoint(itemOnCounter);
+
+        Debug.Log($"[COUNTER] Placed '{itemOnCounter.name}' on '{gameObject.name}'.");
     }
 
     protected virtual void PickUpItem(PlayerController player)
     {
-        if (itemsSlot == null) return;
+        if (itemOnCounter == null) return;
 
-        player.PickUpItem(itemsSlot);
-        itemsSlot = null;
-        
-        Debug.Log("[COUNTER] Item picked up. Counter is now FREE.");
+        player.PickUpItem(itemOnCounter);
+        itemOnCounter = null;
+
+        Debug.Log($"[COUNTER] Item picked up from '{gameObject.name}'.");
     }
 
+    /// <summary>
+    /// Called when the player interacts while holding an item and the counter
+    /// already has something on it. Override to handle combining/swapping.
+    /// </summary>
     protected virtual void TryHandleSpecialInteraction(PlayerController player)
     {
-        // Default: do nothing if occupied
+        if (itemOnCounter == null) return;
+        var tableData = itemOnCounter.GetComponentInChildren<ItemData>();
+        
+        var held = player.GetHeldItem();
+        if (held == null) return;
+        var heldData = held.GetComponentInChildren<ItemData>();
+
+        if (tableData != null && heldData != null)
+        {
+            // Packaging logic: Holding PaperBag, table has BakedPandesalTray
+            if (heldData.itemType == ItemType.PaperBag && tableData.itemType == ItemType.BakedPandesalTray)
+            {
+                heldData.count += 10; // We define 1 baked tray = 10 pandesals loaded into the bag
+                Debug.Log($"[PACKAGING] Packed 10 pandesals into bag. Bag now has {heldData.count} pandesals.");
+                
+                // Destroy the baked tray
+                Destroy(itemOnCounter);
+                itemOnCounter = null;
+            }
+        }
     }
+
+    // ---------------------------------------------------------------
+    // Shared utility
+    // ---------------------------------------------------------------
+
+    protected void SnapToPlacementPoint(GameObject obj)
+    {
+        AutoFixBadPivots(obj); // Force the prefabs' visual mesh to center on their roots
+
+        obj.transform.SetParent(itemPlacementPoint, true);
+        obj.transform.localPosition = Vector3.zero;
+        obj.transform.localRotation = Quaternion.identity;
+
+        // Force physics bodies to stay perfectly still while on the counter
+        if (obj.TryGetComponent<Rigidbody>(out var rb))
+        {
+            rb.isKinematic = true;
+        }
+
+        // Force all colliders to become triggers while on the counter
+        // This stops instantly-spawned prefabs from violently pushing the player
+        var colliders = obj.GetComponentsInChildren<Collider>();
+        foreach (var c in colliders)
+        {
+            c.isTrigger = true;
+        }
+    }
+
+    /// <summary>
+    /// Matches the true visual bounds (mesh center) of an object with its root transform position.
+    /// This fixes illusions where the user's Prefab had its 3D model shifted far to the side of the 0,0,0 root.
+    /// </summary>
+    public static void AutoFixBadPivots(GameObject obj)
+    {
+        Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+        if (renderers.Length > 0)
+        {
+            Bounds b = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                b.Encapsulate(renderers[i].bounds);
+            }
+            
+            Vector3 offset = obj.transform.position - b.center;
+            
+            // If the visual center is off by more than 5cm, mathematically slide the children to the root
+            if (offset.magnitude > 0.05f)
+            {
+                foreach (Transform child in obj.transform)
+                {
+                    child.position += offset;
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // IInteractable
+    // ---------------------------------------------------------------
 
     public virtual string GetInteractText()
     {
-        if (itemsSlot != null) return "Pick Up " + itemsSlot.name;
-        return "Place Item";
+        if (itemOnCounter != null) 
+        {
+            var data = itemOnCounter.GetComponentInChildren<ItemData>();
+            if (data != null && data.itemType == ItemType.BakedPandesalTray)
+            {
+                return $"Pick Up {itemOnCounter.name} (E) | Pack with Bag (E)";
+            }
+            return $"Pick Up {itemOnCounter.name} (E)";
+        }
+        return "Place Item (E)";
     }
 }

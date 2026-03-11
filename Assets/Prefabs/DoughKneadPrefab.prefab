@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2530228606364416477
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4835280452547435151}
+  - component: {fileID: 5278674331606690226}
+  - component: {fileID: 6163080670932152234}
+  m_Layer: 0
+  m_Name: DoughKneadPrefab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4835280452547435151
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2530228606364416477}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -21.38086, y: 0, z: -12.40595}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5278674331606690226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2530228606364416477}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1a39719f691994abc4bdce3c706705, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoughVisuals
+  rawModel: {fileID: 4621994039167911245, guid: 88fde156f540e7a42aa450f3d32eb6ed, type: 3}
+  rolledModel: {fileID: 2033862044591552009, guid: 3e4347729113cbf46afc9d696ccf15d2, type: 3}
+  shapedModel: {fileID: 6847464904657056432, guid: dc01a3c0e25fb7547acc6dcb852c7b0c, type: 3}
+  trayModel: {fileID: 8694580088642607743, guid: 3a754c4ee7e1edb43bf8dae072af499c, type: 3}
+  bakedModel: {fileID: 7554845758393948612, guid: df9bb71519f75a744a424ef00ef90663, type: 3}
+  burntModel: {fileID: 0}
+--- !u!114 &6163080670932152234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2530228606364416477}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97f5f5f7db1d42941b54bd97d4e25c6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemType: 4
+  count: 1

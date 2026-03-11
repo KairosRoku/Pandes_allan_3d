@@ -22,22 +22,26 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         if (hasCustomer && player.IsHoldingItem())
         {
             GameObject held = player.GetHeldItem();
-            if (held.TryGetComponent<ItemData>(out var data) && data.itemType == ItemType.PaperBag)
+            if (held != null)
             {
-                if (data.count >= currentRequirement)
+                var data = held.GetComponentInChildren<ItemData>();
+                if (data != null && data.itemType == ItemType.PaperBag)
                 {
-                    // Success!
-                    int payment = currentRequirement * 5; // Example price
-                    GameManager.Instance.money += payment;
-                    Debug.Log("Order completed! Earned: " + payment);
-                    
-                    Destroy(player.RemoveHeldItem());
-                    hasCustomer = false;
-                    Invoke("SpawnCustomer", Random.Range(5f, 15f));
-                }
-                else
-                {
-                    Debug.Log("Not enough pandesals in the bag! Need " + currentRequirement);
+                    if (data.count >= currentRequirement)
+                    {
+                        // Success!
+                        int payment = currentRequirement * 5; // Example price
+                        GameManager.Instance.money += payment;
+                        Debug.Log("Order completed! Earned: " + payment);
+                        
+                        Destroy(player.RemoveHeldItem());
+                        hasCustomer = false;
+                        Invoke("SpawnCustomer", Random.Range(5f, 15f));
+                    }
+                    else
+                    {
+                        Debug.Log("Not enough pandesals in the bag! Need " + currentRequirement);
+                    }
                 }
             }
         }

@@ -2084,6 +2084,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Shaped Dough With Tray
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 89b6abefae3be1c499efecf08914e809, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
