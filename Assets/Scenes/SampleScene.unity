@@ -1121,7 +1121,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 2bc0b37ed2d01c941975dd149db1a6d6, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.23883297
+      value: 1.795
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2bc0b37ed2d01c941975dd149db1a6d6, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1129,7 +1129,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2bc0b37ed2d01c941975dd149db1a6d6, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5.7832594
+      value: 1.77
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2bc0b37ed2d01c941975dd149db1a6d6, type: 3}
       propertyPath: m_LocalRotation.w
@@ -3114,7 +3114,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1329435a5dc5eb1438be68a7e55eb845, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5.788
+      value: -0.27
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1329435a5dc5eb1438be68a7e55eb845, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4905,7 +4905,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProcessingTable
   itemPlacementPoint: {fileID: 399545439}
-  doughKneadPrefab: {fileID: 0}
+  doughKneadPrefab: {fileID: 2033862044591552009, guid: 3e4347729113cbf46afc9d696ccf15d2, type: 3}
   shapedDoughPrefab: {fileID: 7399433385874716472, guid: 070d6eaa43bdcf04fa8cee386980fb1f, type: 3}
   trayedShapedDoughPrefab: {fileID: 8694580088642607743, guid: 3a754c4ee7e1edb43bf8dae072af499c, type: 3}
 --- !u!64 &1035831868
@@ -6581,7 +6581,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.23
+      value: 1.75
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalPosition.y
@@ -6589,23 +6589,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5.676
+      value: 3.71
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 1
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -6613,7 +6613,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 180
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ef731ae5bf5934496140f3b28e9ec3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -6950,7 +6950,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProcessingTable
   itemPlacementPoint: {fileID: 1791105082}
-  doughKneadPrefab: {fileID: 0}
+  doughKneadPrefab: {fileID: 2033862044591552009, guid: 3e4347729113cbf46afc9d696ccf15d2, type: 3}
   shapedDoughPrefab: {fileID: 7399433385874716472, guid: 070d6eaa43bdcf04fa8cee386980fb1f, type: 3}
   trayedShapedDoughPrefab: {fileID: 8694580088642607743, guid: 3a754c4ee7e1edb43bf8dae072af499c, type: 3}
 --- !u!64 &1350619567
@@ -7721,7 +7721,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProcessingTable
   itemPlacementPoint: {fileID: 410816993}
-  doughKneadPrefab: {fileID: 0}
+  doughKneadPrefab: {fileID: 2033862044591552009, guid: 3e4347729113cbf46afc9d696ccf15d2, type: 3}
   shapedDoughPrefab: {fileID: 7399433385874716472, guid: 070d6eaa43bdcf04fa8cee386980fb1f, type: 3}
   trayedShapedDoughPrefab: {fileID: 8694580088642607743, guid: 3a754c4ee7e1edb43bf8dae072af499c, type: 3}
 --- !u!64 &1576330021
@@ -8504,23 +8504,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -5784078360327297755, guid: 8fd09b4b7f8ed8b41b1c73970c00bd93, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.96870875
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -5784078360327297755, guid: 8fd09b4b7f8ed8b41b1c73970c00bd93, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.24820015
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -5784078360327297755, guid: 8fd09b4b7f8ed8b41b1c73970c00bd93, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.000000029802319
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -5784078360327297755, guid: 8fd09b4b7f8ed8b41b1c73970c00bd93, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.000000016081097
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -5784078360327297755, guid: 8fd09b4b7f8ed8b41b1c73970c00bd93, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 28.742
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 8fd09b4b7f8ed8b41b1c73970c00bd93, type: 3}
       propertyPath: m_Name
@@ -9806,7 +9806,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProcessingTable
   itemPlacementPoint: {fileID: 1377673811}
-  doughKneadPrefab: {fileID: 0}
+  doughKneadPrefab: {fileID: 2033862044591552009, guid: 3e4347729113cbf46afc9d696ccf15d2, type: 3}
   shapedDoughPrefab: {fileID: 7399433385874716472, guid: 070d6eaa43bdcf04fa8cee386980fb1f, type: 3}
   trayedShapedDoughPrefab: {fileID: 8694580088642607743, guid: 3a754c4ee7e1edb43bf8dae072af499c, type: 3}
 --- !u!64 &1886311450
