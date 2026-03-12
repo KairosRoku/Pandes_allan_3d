@@ -1,19 +1,36 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    public float dayDurationMinutes = 15f;
-    private float timer = 0f;
-    private bool isDayActive = false;
+    [Header("Time Settings")]
+    public float realSecondsPerGameHour = 60f; // 1 game hour = 60 real seconds by default
+    public int startHour = 3; // 3 AM
+    public int endHour = 12;  // 12 PM
+    public int serviceStartHour = 5; // Customers start at 5 AM
 
-    public int money = 100;
+    private float gameTimeTimer = 0f;
+    public bool isDayActive = false;
+
+    [Header("Economy")]
+    public int totalMoney = 100;
+    public int moneyEarnedToday = 0;
     public int currentDay = 1;
 
+    [Header("End Day UI")]
     public GameObject dayEndWindow;
+    public TextMeshProUGUI statsText;
+
+    [Header("HUD")]
+    public GameObject hudPanel;
+    public GameObject prepPhaseIndicator;
+    public TextMeshProUGUI clockText;
+    public TextMeshProUGUI moneyText;
+    public TextMeshProUGUI dayText; // New day counter HUD text
 
     private void Awake()
     {
@@ -26,30 +43,91 @@ public class GameManager : MonoBehaviour
         StartDay();
     }
 
+    public void ToggleHUD(bool active)
+    {
+        if (hudPanel != null)
+            hudPanel.SetActive(active);
+    }
+
     public void StartDay()
     {
-        timer = dayDurationMinutes * 60f;
+        gameTimeTimer = 0f;
+        moneyEarnedToday = 0;
         isDayActive = true;
         dayEndWindow.SetActive(false);
+        UpdateHUD();
+
+        // Lock cursor for gameplay
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void Update()
     {
         if (isDayActive)
         {
-            timer -= Time.deltaTime;
-            if (timer <= 0)
+            gameTimeTimer += Time.deltaTime;
+            
+            UpdateHUD();
+
+            float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
+            if (startHour + totalHoursPassed >= endHour)
             {
                 EndDay();
             }
         }
     }
 
+    private void UpdateHUD()
+    {
+        float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
+        float currentDisplayHour = startHour + totalHoursPassed;
+        
+        int hours = Mathf.FloorToInt(currentDisplayHour);
+        int minutes = Mathf.FloorToInt((currentDisplayHour - hours) * 60f);
+
+        if (clockText != null)
+            clockText.text = $"{hours:D2}:{minutes:D2} AM";
+
+        if (moneyText != null)
+            moneyText.text = $"${totalMoney}";
+
+        if (dayText != null)
+            dayText.text = $"Day {currentDay}";
+
+        // Show prep phase indicator only before service time
+        if (prepPhaseIndicator != null)
+            prepPhaseIndicator.SetActive(!IsServiceTime());
+    }
+
+    public bool IsServiceTime()
+    {
+        float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
+        return (startHour + totalHoursPassed) >= serviceStartHour;
+    }
+
+    public void AddMoney(int amount)
+    {
+        totalMoney += amount;
+        moneyEarnedToday += amount;
+        UpdateHUD();
+    }
+
     private void EndDay()
     {
         isDayActive = false;
         dayEndWindow.SetActive(true);
-        // Trigger News/Events system
+
+        // Unlock cursor for UI
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        
+        if (statsText != null)
+        {
+            statsText.text = $"DAY {currentDay} COMPLETE\n\n" +
+                             $"Money Earned: ${moneyEarnedToday}\n" +
+                             $"Total Balance: ${totalMoney}";
+        }
     }
 
     public void NextDay()
@@ -60,10 +138,10 @@ public class GameManager : MonoBehaviour
 
     public void BuyItem(ItemType type, int cost)
     {
-        if (money >= cost)
+        if (totalMoney >= cost)
         {
-            money -= cost;
-            // Add to global inventory or just deduct money
+            totalMoney -= cost;
+            UpdateHUD();
             Debug.Log("Bought " + type + " for " + cost);
         }
     }

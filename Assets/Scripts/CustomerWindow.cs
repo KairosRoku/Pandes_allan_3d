@@ -9,15 +9,45 @@ public class CustomerWindow : MonoBehaviour, IInteractable
     [Header("UI")]
     public TextMeshProUGUI countText;
 
+    private float spawnTimer = -1f;
+
     private void Start()
     {
-        SpawnCustomer();
+        if (GameManager.Instance.IsServiceTime())
+            SpawnCustomer();
+        else
+            spawnTimer = 2f; // Initial wait once 5AM hits
+    }
+
+    private void Update()
+    {
+        // If day ends, customer leaves
+        if (hasCustomer && !GameManager.Instance.isDayActive)
+        {
+            hasCustomer = false;
+            spawnTimer = -1f;
+            UpdateUI();
+        }
+
+        if (!hasCustomer && GameManager.Instance.isDayActive && GameManager.Instance.IsServiceTime())
+        {
+            if (spawnTimer < 0) spawnTimer = 2f; // Initialize timer if not set
+
+            spawnTimer -= Time.deltaTime;
+            if (spawnTimer <= 0)
+            {
+                SpawnCustomer();
+            }
+        }
     }
 
     public void SpawnCustomer()
     {
+        if (!GameManager.Instance.IsServiceTime()) return;
+
         currentRequirement = Random.Range(10, 21);
         hasCustomer = true;
+        spawnTimer = -1f;
         UpdateUI();
         Debug.Log("Customer wants " + currentRequirement + " pandesals!");
     }
@@ -36,13 +66,15 @@ public class CustomerWindow : MonoBehaviour, IInteractable
                     {
                         // Success!
                         int payment = currentRequirement * 5; // Example price
-                        GameManager.Instance.money += payment;
+                        GameManager.Instance.AddMoney(payment);
                         Debug.Log("Order completed! Earned: " + payment);
                         
                         Destroy(player.RemoveHeldItem());
                         hasCustomer = false;
                         UpdateUI();
-                        Invoke("SpawnCustomer", Random.Range(5f, 15f));
+                        
+                        // Start spawn timer for next customer
+                        spawnTimer = Random.Range(5f, 15f);
                     }
                     else
                     {

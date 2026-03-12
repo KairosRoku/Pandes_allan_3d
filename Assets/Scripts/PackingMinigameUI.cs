@@ -54,7 +54,13 @@ public class PackingMinigameUI : MonoBehaviour
         currentTrayData = trayData;
         currentBagData = bagData;
 
+        // Freeze player and pause time
         player.enabled = false;
+        Time.timeScale = 0f;
+        
+        if (GameManager.Instance != null)
+            GameManager.Instance.ToggleHUD(false);
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -129,10 +135,14 @@ public class PackingMinigameUI : MonoBehaviour
     {
         windowRoot.SetActive(false);
 
-        // Resume player
+        // Resume player and time
         if (playerRef != null)
             playerRef.enabled = true;
 
+        if (GameManager.Instance != null)
+            GameManager.Instance.ToggleHUD(true);
+
+        Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 

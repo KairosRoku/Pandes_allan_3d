@@ -41,8 +41,13 @@ public class KneadingMinigameUI : MonoBehaviour
         currentProgress = 0f;
         isMinigameActive = true;
         
-        // Freeze player
+        // Freeze player and pause time
         player.enabled = false;
+        Time.timeScale = 0f;
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.ToggleHUD(false);
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -110,10 +115,14 @@ public class KneadingMinigameUI : MonoBehaviour
         isMinigameActive = false;
         windowRoot.SetActive(false);
 
-        // Resume player
+        // Resume player and time
         if (playerRef != null)
             playerRef.enabled = true;
 
+        if (GameManager.Instance != null)
+            GameManager.Instance.ToggleHUD(true);
+
+        Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
