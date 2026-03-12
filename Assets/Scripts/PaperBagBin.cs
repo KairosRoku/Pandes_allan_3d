@@ -11,7 +11,24 @@ public class PaperBagBin : MonoBehaviour, IInteractable
 
     public void Interact(PlayerController player)
     {
-        if (paperBagPrefab != null && !player.IsHoldingItem())
+        if (player.IsHoldingItem())
+        {
+            GameObject held = player.GetHeldItem();
+            var data = held.GetComponentInChildren<ItemData>();
+            if (data != null && data.itemType == ItemType.PaperBag)
+            {
+                if (data.count == 0)
+                {
+                    Destroy(player.RemoveHeldItem());
+                    Debug.Log("[PAPER BAG BIN] Player returned an empty Paper Bag.");
+                }
+                else
+                {
+                    Debug.Log("[PAPER BAG BIN] Cannot return a non-empty bag!");
+                }
+            }
+        }
+        else if (paperBagPrefab != null)
         {
             GameObject bag = Instantiate(paperBagPrefab);
             

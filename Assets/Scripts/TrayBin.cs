@@ -12,7 +12,17 @@ public class TrayBin : MonoBehaviour, IInteractable
 
     public void Interact(PlayerController player)
     {
-        if (trayPrefab != null && !player.IsHoldingItem())
+        if (player.IsHoldingItem())
+        {
+            GameObject held = player.GetHeldItem();
+            var data = held.GetComponentInChildren<ItemData>();
+            if (data != null && data.itemType == ItemType.Tray)
+            {
+                Destroy(player.RemoveHeldItem());
+                Debug.Log("[TRAY BIN] Player returned a Tray.");
+            }
+        }
+        else if (trayPrefab != null)
         {
             GameObject tray = Instantiate(trayPrefab, player.holdPoint.position, player.holdPoint.rotation);
             player.PickUpItem(tray);

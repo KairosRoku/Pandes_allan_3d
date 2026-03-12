@@ -23,7 +23,19 @@ public class DoughBin : MonoBehaviour, IInteractable
 
     public void Interact(PlayerController player)
     {
-        if (doughPrefab != null && !player.IsHoldingItem() && doughCount > 0)
+        if (player.IsHoldingItem())
+        {
+            GameObject held = player.GetHeldItem();
+            var data = held.GetComponentInChildren<ItemData>();
+            if (data != null && data.itemType == ItemType.Dough)
+            {
+                doughCount++;
+                UpdateUI();
+                Destroy(player.RemoveHeldItem());
+                Debug.Log("[DOUGH BIN] Player returned a Dough item.");
+            }
+        }
+        else if (doughPrefab != null && doughCount > 0)
         {
             doughCount--;
             UpdateUI();

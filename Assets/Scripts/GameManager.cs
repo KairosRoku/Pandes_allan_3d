@@ -102,8 +102,13 @@ public class GameManager : MonoBehaviour
 
     public bool IsServiceTime()
     {
+        return GetCurrentHour() >= serviceStartHour;
+    }
+
+    public float GetCurrentHour()
+    {
         float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
-        return (startHour + totalHoursPassed) >= serviceStartHour;
+        return startHour + totalHoursPassed;
     }
 
     public void AddMoney(int amount)
