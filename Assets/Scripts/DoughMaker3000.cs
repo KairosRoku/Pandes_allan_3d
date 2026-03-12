@@ -6,9 +6,19 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
     public DoughBin doughBin;
     public GameObject doughItemPrefab;
 
+    [Header("UI Indicators")]
+    public GameObject flourIndicator;
+    public GameObject sugarIndicator;
+    public GameObject waterIndicator;
+
     private bool hasFlour;
     private bool hasSugar;
     private bool hasWater;
+
+    private void Start()
+    {
+        UpdateUI();
+    }
 
     public void Interact(PlayerController player)
     {
@@ -39,6 +49,7 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
                 {
                     Debug.Log($"[DOUGHMAKER] Accepted {data.itemType}. Consuming item.");
                     Destroy(player.RemoveHeldItem());
+                    UpdateUI();
                     CheckIngredients();
                 }
                 else
@@ -65,20 +76,27 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
             hasSugar = false;
             hasWater = false;
             
+            UpdateUI();
             ProduceDough();
         }
     }
 
     private void ProduceDough()
     {
-        // One dough instantly goes to the bin
         if (doughBin != null)
         {
             doughBin.AddDough();
         }
     }
 
-    public string GetInteractText()
+    private void UpdateUI()
+    {
+        if (flourIndicator != null) flourIndicator.SetActive(hasFlour);
+        if (sugarIndicator != null) sugarIndicator.SetActive(hasSugar);
+        if (waterIndicator != null) waterIndicator.SetActive(hasWater);
+    }
+
+    public string GetInteractText(PlayerController player)
     {
         string needed = "";
         if (!hasFlour) needed += " Flour";

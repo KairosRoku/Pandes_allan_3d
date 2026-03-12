@@ -3,7 +3,7 @@ using UnityEngine;
 public interface IInteractable
 {
     void Interact(PlayerController player);
-    string GetInteractText();
+    string GetInteractText(PlayerController player);
 }
 
 public interface IPickable

@@ -44,11 +44,31 @@ public class ProcessingTable : Counter
                 switch (data.itemType)
                 {
                     case ItemType.Dough:
-                        if (SwapPrefab(doughKneadPrefab, ItemType.DoughKnead, "Dough → Dough Knead")) return;
-                        break; // If swap fails (e.g. missing prefab), fall through to pick up
+                        if (KneadingMinigameUI.Instance != null)
+                        {
+                            KneadingMinigameUI.Instance.StartMinigame(player, () => {
+                                SwapPrefab(doughKneadPrefab, ItemType.DoughKnead, "Dough → Dough Knead");
+                            });
+                            return;
+                        }
+                        else
+                        {
+                            if (SwapPrefab(doughKneadPrefab, ItemType.DoughKnead, "Dough → Dough Knead")) return;
+                        }
+                        break;
 
                     case ItemType.DoughKnead:
-                        if (SwapPrefab(shapedDoughPrefab, ItemType.ShapedDough, "Dough Knead → Shaped Dough")) return;
+                        if (ShapingMinigameUI.Instance != null)
+                        {
+                            ShapingMinigameUI.Instance.StartMinigame(player, () => {
+                                SwapPrefab(shapedDoughPrefab, ItemType.ShapedDough, "Dough Knead → Shaped Dough");
+                            });
+                            return;
+                        }
+                        else
+                        {
+                            if (SwapPrefab(shapedDoughPrefab, ItemType.ShapedDough, "Dough Knead → Shaped Dough")) return;
+                        }
                         break;
                 }
             }
@@ -68,24 +88,27 @@ public class ProcessingTable : Counter
         var tableData = itemOnCounter.GetComponentInChildren<ItemData>();
         if (tableData == null) return;
 
-        if (tableData.itemType != ItemType.ShapedDough)
-        {
-            base.TryHandleSpecialInteraction(player);
-            return;
-        }
-
         GameObject held = player.GetHeldItem();
         if (held == null) return;
         var heldData = held.GetComponentInChildren<ItemData>();
-        if (heldData == null || heldData.itemType != ItemType.Tray)
+        if (heldData == null) return;
+
+        // Case 1: Table has ShapedDough, Player holds Tray
+        bool case1 = (tableData.itemType == ItemType.ShapedDough && heldData.itemType == ItemType.Tray);
+        
+        // Case 2: Table has Tray, Player holds ShapedDough
+        bool case2 = (tableData.itemType == ItemType.Tray && heldData.itemType == ItemType.ShapedDough);
+
+        if (case1 || case2)
         {
-            base.TryHandleSpecialInteraction(player);
+            // Consume the held item
+            Destroy(player.RemoveHeldItem());
+            // Transform the table item
+            SwapPrefab(trayedShapedDoughPrefab, ItemType.TrayedShapedDough, "Combining Shaped Dough + Tray → Trayed Shaped Dough");
             return;
         }
 
-        // Consume the tray, swap to trayed prefab
-        Destroy(player.RemoveHeldItem());
-        SwapPrefab(trayedShapedDoughPrefab, ItemType.TrayedShapedDough, "Shaped Dough + Tray → Trayed Shaped Dough");
+        base.TryHandleSpecialInteraction(player);
     }
 
     // ---------------------------------------------------------------
@@ -123,21 +146,26 @@ public class ProcessingTable : Counter
     // Prompt text
     // ---------------------------------------------------------------
 
-    public override string GetInteractText()
+    public override string GetInteractText(PlayerController player)
     {
         if (itemOnCounter != null)
         {
             var data = itemOnCounter.GetComponentInChildren<ItemData>();
             if (data != null)
             {
+                string info = (data.itemType == ItemType.BakedPandesalTray) ? $" ({data.count} pcs)" : "";
+
                 return data.itemType switch
                 {
                     ItemType.Dough             => "Knead the Dough (E)",
                     ItemType.DoughKnead        => "Shape the Dough (E)",
-                    ItemType.ShapedDough       => "Bring a Tray to load it (E)",
+                    ItemType.ShapedDough       => player.IsHoldingItem() && player.GetHeldItem().GetComponentInChildren<ItemData>()?.itemType == ItemType.Tray 
+                                                  ? "Add Tray (E)" : "Bring a Tray to load it (E)",
+                    ItemType.Tray              => player.IsHoldingItem() && player.GetHeldItem().GetComponentInChildren<ItemData>()?.itemType == ItemType.ShapedDough 
+                                                  ? "Add Shaped Dough (E)" : "Pick Up Tray (E)",
                     ItemType.TrayedShapedDough => "Pick Up — Oven Ready! (E)",
-                    ItemType.BakedPandesalTray => "Pick Up (E) | Pack with Bag (E)",
-                    _                          => "Pick Up (E)"
+                    ItemType.BakedPandesalTray => $"Pick Up{info} (E) | Pack with Bag (E)",
+                    _                          => $"Pick Up {itemOnCounter.name}{info} (E)"
                 };
             }
         }

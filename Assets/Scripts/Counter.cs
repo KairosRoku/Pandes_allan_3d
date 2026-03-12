@@ -105,12 +105,17 @@ public class Counter : MonoBehaviour, IInteractable
             // Packaging logic: Holding PaperBag, table has BakedPandesalTray
             if (heldData.itemType == ItemType.PaperBag && tableData.itemType == ItemType.BakedPandesalTray)
             {
-                heldData.count += 10; // We define 1 baked tray = 10 pandesals loaded into the bag
-                Debug.Log($"[PACKAGING] Packed 10 pandesals into bag. Bag now has {heldData.count} pandesals.");
-                
-                // Destroy the baked tray
-                Destroy(itemOnCounter);
-                itemOnCounter = null;
+                if (PackingMinigameUI.Instance != null)
+                {
+                    PackingMinigameUI.Instance.OpenMinigame(player, tableData, heldData);
+                }
+                else
+                {
+                    // Fallback if UI is not set up
+                    heldData.count += tableData.count;
+                    tableData.count = 0;
+                    Debug.Log($"[PACKAGING] Instant pack fallback (UI missing). Bag: {heldData.count}");
+                }
             }
         }
     }
@@ -174,14 +179,22 @@ public class Counter : MonoBehaviour, IInteractable
     // IInteractable
     // ---------------------------------------------------------------
 
-    public virtual string GetInteractText()
+    public virtual string GetInteractText(PlayerController player)
     {
-        if (itemOnCounter != null) 
+        if (itemOnCounter != null)
         {
             var data = itemOnCounter.GetComponentInChildren<ItemData>();
-            if (data != null && data.itemType == ItemType.BakedPandesalTray)
+            if (data != null)
             {
-                return $"Pick Up {itemOnCounter.name} (E) | Pack with Bag (E)";
+                string info = "";
+                if (data.itemType == ItemType.BakedPandesalTray || data.itemType == ItemType.PaperBag)
+                    info = $" ({data.count} pcs)";
+
+                if (data.itemType == ItemType.BakedPandesalTray)
+                {
+                    return $"Pick Up {itemOnCounter.name}{info} (E) | Pack with Bag (E)";
+                }
+                return $"Pick Up {itemOnCounter.name}{info} (E)";
             }
             return $"Pick Up {itemOnCounter.name} (E)";
         }

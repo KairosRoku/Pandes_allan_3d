@@ -20,7 +20,7 @@ public class TrayBin : MonoBehaviour, IInteractable
         }
     }
 
-    public string GetInteractText()
+    public string GetInteractText(PlayerController player)
     {
         return "Pick Up Tray";
     }

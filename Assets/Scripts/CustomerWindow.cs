@@ -1,9 +1,13 @@
 using UnityEngine;
+using TMPro;
 
 public class CustomerWindow : MonoBehaviour, IInteractable
 {
     public int currentRequirement = 0;
     private bool hasCustomer = false;
+
+    [Header("UI")]
+    public TextMeshProUGUI countText;
 
     private void Start()
     {
@@ -14,6 +18,7 @@ public class CustomerWindow : MonoBehaviour, IInteractable
     {
         currentRequirement = Random.Range(10, 21);
         hasCustomer = true;
+        UpdateUI();
         Debug.Log("Customer wants " + currentRequirement + " pandesals!");
     }
 
@@ -36,6 +41,7 @@ public class CustomerWindow : MonoBehaviour, IInteractable
                         
                         Destroy(player.RemoveHeldItem());
                         hasCustomer = false;
+                        UpdateUI();
                         Invoke("SpawnCustomer", Random.Range(5f, 15f));
                     }
                     else
@@ -47,7 +53,15 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         }
     }
 
-    public string GetInteractText()
+    private void UpdateUI()
+    {
+        if (countText != null)
+        {
+            countText.text = hasCustomer ? currentRequirement.ToString() : "";
+        }
+    }
+
+    public string GetInteractText(PlayerController player)
     {
         if (!hasCustomer) return "Waiting for Customer...";
         return "Customer wants " + currentRequirement + " pandesals";

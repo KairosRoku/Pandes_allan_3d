@@ -27,7 +27,7 @@ public class PaperBagBin : MonoBehaviour, IInteractable
         }
     }
 
-    public string GetInteractText()
+    public string GetInteractText(PlayerController player)
     {
         return "Pick Up Paper Bag";
     }

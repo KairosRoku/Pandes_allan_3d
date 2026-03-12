@@ -14,7 +14,7 @@ public class Dispenser : MonoBehaviour, IInteractable
         }
     }
 
-    public string GetInteractText()
+    public string GetInteractText(PlayerController player)
     {
         return "Pick Up " + itemType.ToString();
     }

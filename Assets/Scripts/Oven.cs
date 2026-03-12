@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Oven — accepts TrayedShapedDough, bakes it over time, and can burn it.
@@ -26,12 +27,25 @@ public class Oven : MonoBehaviour, IInteractable
     [Tooltip("Prefab spawned when the tray is left in too long.")]
     public GameObject burntPandesalPrefab;
 
+    [Header("UI")]
+    public GameObject timerCanvas;
+    public Image timerFillImage;
+    public Color bakingColor = Color.green;
+    public Color doneColor = Color.yellow;
+    public Color burningColor = Color.red;
+
     // Runtime state
     private GameObject currentTray;
     private float      timer;
     private bool       isBaking;
     private bool       isDone;
     private bool       isBurnt;
+
+    private void Start()
+    {
+        if (timerCanvas != null)
+            timerCanvas.SetActive(false);
+    }
 
     // ---------------------------------------------------------------
     // IInteractable
@@ -67,9 +81,19 @@ public class Oven : MonoBehaviour, IInteractable
 
     private void Update()
     {
-        if (!isBaking) return;
+        if (!isBaking)
+        {
+            if (timerCanvas != null && timerCanvas.activeSelf)
+                timerCanvas.SetActive(false);
+            return;
+        }
+
+        if (timerCanvas != null && !timerCanvas.activeSelf)
+            timerCanvas.SetActive(true);
 
         timer += Time.deltaTime;
+
+        UpdateUI();
 
         if (!isDone && timer >= bakeTime)
         {
@@ -82,6 +106,41 @@ public class Oven : MonoBehaviour, IInteractable
             isBurnt = true;
             SwapTrayPrefab(burntPandesalPrefab, "Tray burnt!");
         }
+    }
+
+    private void UpdateUI()
+    {
+        if (timerFillImage == null) return;
+
+        float fill;
+        Color color;
+
+        if (!isDone)
+        {
+            // Baking phase: 0 to bakeTime
+            fill = Mathf.Clamp01(timer / bakeTime);
+            color = bakingColor;
+        }
+        else if (!isBurnt)
+        {
+            // Done phase: waiting to burn
+            // We can show how close it is to burning by filling the rest (if bakeTime < burnTime)
+            // or just stay full and change color.
+            float burnWindow = burnTime - bakeTime;
+            float burnProgress = (timer - bakeTime) / burnWindow;
+            
+            fill = 1f; // Keep it full
+            color = Color.Lerp(doneColor, burningColor, burnProgress);
+        }
+        else
+        {
+            // Burnt phase
+            fill = 1f;
+            color = burningColor;
+        }
+
+        timerFillImage.fillAmount = fill;
+        timerFillImage.color = color;
     }
 
     // ---------------------------------------------------------------
@@ -108,6 +167,9 @@ public class Oven : MonoBehaviour, IInteractable
         isBaking    = false;
         isDone      = false;
         isBurnt     = false;
+
+        if (timerCanvas != null)
+            timerCanvas.SetActive(false);
 
         Debug.Log("[OVEN] Tray removed by player.");
     }
@@ -149,7 +211,7 @@ public class Oven : MonoBehaviour, IInteractable
     // Prompt text
     // ---------------------------------------------------------------
 
-    public string GetInteractText()
+    public string GetInteractText(PlayerController player)
     {
         if (currentTray == null) return "Insert Tray (E)";
         if (isBurnt)  return "Pick Up Burnt Pandesal (E)";

@@ -14,7 +14,7 @@ public class IngredientRack : MonoBehaviour, IInteractable
         }
     }
 
-    public string GetInteractText()
+    public string GetInteractText(PlayerController player)
     {
         return "Pick Up " + itemType.ToString();
     }

@@ -14,7 +14,7 @@ public class InteractionPromptUI : MonoBehaviour
         if (interactable != null)
         {
             promptPanel.SetActive(true);
-            promptText.text = "[E] " + interactable.GetInteractText();
+            promptText.text = "[E] " + interactable.GetInteractText(player);
         }
         else
         {
