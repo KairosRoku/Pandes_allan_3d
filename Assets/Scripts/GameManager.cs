@@ -32,6 +32,18 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI moneyText;
     public TextMeshProUGUI dayText; // New day counter HUD text
 
+    [Header("Shop Settings")]
+    public int flourRestockCost = 10;
+    public int sugarRestockCost = 10;
+    public int waterRestockCost = 5;
+    public int restockAmountPerPurchase = 5;
+
+    [Header("Shop UI Texts")]
+    public TextMeshProUGUI shopFlourAmountText;
+    public TextMeshProUGUI shopSugarAmountText;
+    public TextMeshProUGUI shopWaterAmountText;
+    public TextMeshProUGUI shopMoneyText; // Added to show money in the shop menu
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -133,6 +145,8 @@ public class GameManager : MonoBehaviour
                              $"Money Earned: ${moneyEarnedToday}\n" +
                              $"Total Balance: ${totalMoney}";
         }
+
+        UpdateShopAmountsUI();
     }
 
     public void NextDay()
@@ -149,5 +163,83 @@ public class GameManager : MonoBehaviour
             UpdateHUD();
             Debug.Log("Bought " + type + " for " + cost);
         }
+    }
+
+    public void BuyFlour()
+    {
+        TryRestock(ItemType.Flour, flourRestockCost);
+    }
+
+    public void BuySugar()
+    {
+        TryRestock(ItemType.Sugar, sugarRestockCost);
+    }
+
+    public void BuyWater()
+    {
+        TryRestock(ItemType.Water, waterRestockCost);
+    }
+
+    private void TryRestock(ItemType type, int cost)
+    {
+        if (totalMoney >= cost)
+        {
+            totalMoney -= cost;
+            UpdateHUD();
+            
+            // Refill all dispensers for this type
+            Dispenser[] dispensers = FindObjectsOfType<Dispenser>();
+            foreach (var d in dispensers)
+            {
+                if (d.itemType == type) d.Restock(restockAmountPerPurchase);
+            }
+
+            // Refill all ingredient racks for this type
+            IngredientRack[] racks = FindObjectsOfType<IngredientRack>();
+            foreach (var r in racks)
+            {
+                if (r.itemType == type) r.Restock(restockAmountPerPurchase);
+            }
+
+            Debug.Log($"[SHOP] Bought {restockAmountPerPurchase} {type} for ${cost}.");
+            UpdateShopAmountsUI();
+        }
+        else
+        {
+            Debug.Log($"[SHOP] Not enough money to buy {type}!");
+        }
+    }
+
+    public void UpdateShopAmountsUI()
+    {
+        if (shopMoneyText != null)
+            shopMoneyText.text = $"Balance: ${totalMoney}";
+
+        if (shopFlourAmountText != null)
+            shopFlourAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Flour)}";
+            
+        if (shopSugarAmountText != null)
+            shopSugarAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Sugar)}";
+            
+        if (shopWaterAmountText != null)
+            shopWaterAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Water)}";
+    }
+
+    private int GetTotalIngredientAmount(ItemType type)
+    {
+        int total = 0;
+        Dispenser[] dispensers = FindObjectsOfType<Dispenser>();
+        foreach (var d in dispensers)
+        {
+            if (d.itemType == type) total += d.currentAmount;
+        }
+
+        IngredientRack[] racks = FindObjectsOfType<IngredientRack>();
+        foreach (var r in racks)
+        {
+            if (r.itemType == type) total += r.currentAmount;
+        }
+
+        return total;
     }
 }
