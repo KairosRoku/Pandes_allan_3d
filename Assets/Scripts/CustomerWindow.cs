@@ -127,7 +127,7 @@ public class CustomerWindow : MonoBehaviour, IInteractable
                     if (data.count >= current.pandesalRequirement)
                     {
                         // Success!
-                        int payment = current.pandesalRequirement * 5;
+                        int payment = current.pandesalRequirement * 2;
                         GameManager.Instance.AddMoney(payment);
                         Debug.Log("[SERVICE] Order completed!");
 
