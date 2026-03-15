@@ -17,8 +17,36 @@ public class Oven : MonoBehaviour, IInteractable
     public Transform trayPoint;
 
     [Header("Timing")]
-    public float bakeTime = 10f;
-    public float burnTime = 13f;
+    public float baseBakeTime = 15f;
+    public float baseBurnWindow = 3f;
+
+    public float CurrentBakeTime
+    {
+        get
+        {
+            if (GameManager.Instance == null) return baseBakeTime;
+            int lvl = GameManager.Instance.bakingUpgradeLevel;
+            if (lvl >= 3) return 4f;
+            if (lvl == 2) return 7f;
+            if (lvl == 1) return 10f;
+            return baseBakeTime;
+        }
+    }
+
+    public float CurrentBurnTime
+    {
+        get
+        {
+            float window = baseBurnWindow;
+            if (GameManager.Instance != null)
+            {
+                int lvl = GameManager.Instance.burnTimeUpgradeLevel;
+                if (lvl >= 2) window = 10f;
+                else if (lvl == 1) window = 5f;
+            }
+            return CurrentBakeTime + window;
+        }
+    }
 
     [Header("Result Prefabs")]
     [Tooltip("Prefab spawned when baking is complete.")]
@@ -95,13 +123,13 @@ public class Oven : MonoBehaviour, IInteractable
 
         UpdateUI();
 
-        if (!isDone && timer >= bakeTime)
+        if (!isDone && timer >= CurrentBakeTime)
         {
             isDone = true;
             SwapTrayPrefab(bakedPandesalPrefab, "Baking complete — pick up the pandesal!");
         }
 
-        if (!isBurnt && timer >= burnTime)
+        if (!isBurnt && timer >= CurrentBurnTime)
         {
             isBurnt = true;
             SwapTrayPrefab(burntPandesalPrefab, "Tray burnt!");
@@ -117,17 +145,17 @@ public class Oven : MonoBehaviour, IInteractable
 
         if (!isDone)
         {
-            // Baking phase: 0 to bakeTime
-            fill = Mathf.Clamp01(timer / bakeTime);
+            // Baking phase: 0 to CurrentBakeTime
+            fill = Mathf.Clamp01(timer / CurrentBakeTime);
             color = bakingColor;
         }
         else if (!isBurnt)
         {
             // Done phase: waiting to burn
-            // We can show how close it is to burning by filling the rest (if bakeTime < burnTime)
+            // We can show how close it is to burning by filling the rest (if CurrentBakeTime < CurrentBurnTime)
             // or just stay full and change color.
-            float burnWindow = burnTime - bakeTime;
-            float burnProgress = (timer - bakeTime) / burnWindow;
+            float burnWindow = CurrentBurnTime - CurrentBakeTime;
+            float burnProgress = (timer - CurrentBakeTime) / burnWindow;
             
             fill = 1f; // Keep it full
             color = Color.Lerp(doneColor, burningColor, burnProgress);
@@ -217,7 +245,7 @@ public class Oven : MonoBehaviour, IInteractable
         if (isBurnt)  return "Pick Up Burnt Pandesal (E)";
         if (isDone)   return "Pick Up Baked Pandesal (E)";
 
-        float remaining = bakeTime - timer;
+        float remaining = CurrentBakeTime - timer;
         return $"Baking… {remaining:F1}s remaining";
     }
 }

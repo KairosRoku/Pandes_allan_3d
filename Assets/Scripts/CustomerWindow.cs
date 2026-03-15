@@ -38,16 +38,35 @@ public class CustomerWindow : MonoBehaviour, IInteractable
                 if (spawnTimer < 0)
                 {
                     float currentHour = GameManager.Instance.GetCurrentHour();
+                    float baseMin = 10f;
+                    float baseMax = 20f;
+                    
                     if (currentHour >= 5 && currentHour <= 8)
                     {
                         // Peak hours: Fast spawning
-                        spawnTimer = Random.Range(3f, 7f);
+                        baseMin = 3f;
+                        baseMax = 7f;
                     }
-                    else
+
+                    if (GameManager.Instance.currentEvent == DailyEvent.Holiday)
                     {
-                        // Normal hours: Slower spawning
-                        spawnTimer = Random.Range(10f, 20f);
+                        baseMin *= 1.5f; baseMax *= 1.5f; // slower
                     }
+                    else if (GameManager.Instance.currentEvent == DailyEvent.SchoolEvent)
+                    {
+                        baseMin *= 0.5f; baseMax *= 0.5f; // faster
+                    }
+
+                    if (GameManager.Instance.viralDaysRemaining > 0)
+                    {
+                        baseMin *= 0.6f; baseMax *= 0.6f; // much faster
+                    }
+                    else if (GameManager.Instance.viralFailedDaysRemaining > 0)
+                    {
+                        baseMin *= 1.5f; baseMax *= 1.5f; // slower
+                    }
+
+                    spawnTimer = Random.Range(baseMin, baseMax);
                 }
 
                 spawnTimer -= Time.deltaTime;
@@ -68,6 +87,18 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         Customer c = obj.GetComponent<Customer>();
         
         int req = Random.Range(5, 16);
+        if (GameManager.Instance.currentEvent == DailyEvent.Holiday)
+            req = Random.Range(20, 31);
+        else if (GameManager.Instance.currentEvent == DailyEvent.SchoolEvent)
+            req = Random.Range(2, 6);
+
+        if (GameManager.Instance.currentEvent == DailyEvent.Vlogger && !GameManager.Instance.hasSpawnedVloggerToday)
+        {
+            c.isVlogger = true;
+            GameManager.Instance.hasSpawnedVloggerToday = true;
+            Debug.Log("[EVENT] Vlogger has arrived!");
+        }
+
         c.Initialize(this, req);
         
         customerQueue.Add(c);

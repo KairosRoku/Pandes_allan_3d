@@ -13,9 +13,22 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
     public GameObject waterIndicator;
 
     [Header("Mixing Timing")]
-    public float mixingTime = 5f;
+    public float baseMixingTime = 15f;
     private float mixingTimer;
     private bool isMixing;
+
+    public float CurrentMixingTime
+    {
+        get
+        {
+            if (GameManager.Instance == null) return baseMixingTime;
+            int lvl = GameManager.Instance.doughMakingUpgradeLevel;
+            if (lvl >= 3) return 4f;
+            if (lvl == 2) return 7f;
+            if (lvl == 1) return 10f;
+            return baseMixingTime;
+        }
+    }
 
     [Header("Mixing UI")]
     public GameObject timerCanvas;
@@ -38,9 +51,9 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
             mixingTimer += Time.deltaTime;
             
             if (timerFillImage != null)
-                timerFillImage.fillAmount = Mathf.Clamp01(mixingTimer / mixingTime);
+                timerFillImage.fillAmount = Mathf.Clamp01(mixingTimer / CurrentMixingTime);
 
-            if (mixingTimer >= mixingTime)
+            if (mixingTimer >= CurrentMixingTime)
             {
                 FinishMixing();
             }
@@ -150,7 +163,7 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
     {
         if (isMixing)
         {
-            float remaining = mixingTime - mixingTimer;
+            float remaining = CurrentMixingTime - mixingTimer;
             return $"Mixing… {remaining:F1}s";
         }
 
