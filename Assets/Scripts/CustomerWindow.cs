@@ -56,6 +56,10 @@ public class CustomerWindow : MonoBehaviour, IInteractable
                     {
                         baseMin *= 0.5f; baseMax *= 0.5f; // faster
                     }
+                    else if (GameManager.Instance.currentEvent == DailyEvent.Bagyo)
+                    {
+                        baseMin *= 10.0f; baseMax *= 10.0f; // extremely rare
+                    }
 
                     if (GameManager.Instance.viralDaysRemaining > 0)
                     {

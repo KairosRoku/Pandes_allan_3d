@@ -61,6 +61,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI startOfDayEventText;
     public TextMeshProUGUI endOfDayNewsText;
     
+    [Header("Pause UI")]
+    public PauseMenuUI pauseMenu;
+
     [HideInInspector] public DailyEvent nextDayEvent = DailyEvent.None;
 
     [Header("End Day UI")]
@@ -99,8 +102,20 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (pauseMenu == null)
+            pauseMenu = FindObjectOfType<PauseMenuUI>();
+
         nextDayEvent = RollForEvent();
         StartDay();
+    }
+
+    public void OpenSettings()
+    {
+        if (pauseMenu != null)
+        {
+            pauseMenu.Pause();
+            pauseMenu.OpenSettings();
+        }
     }
 
     public void ToggleHUD(bool active)
@@ -111,6 +126,11 @@ public class GameManager : MonoBehaviour
 
     public void StartDay()
     {
+        if (currentDay == 1 && gameTimeTimer == 0) // First time starting
+        {
+            LoadGame();
+        }
+
         currentEvent = nextDayEvent;
 
         gameTimeTimer = 0f;
@@ -125,16 +145,15 @@ public class GameManager : MonoBehaviour
 
         if (currentEvent == DailyEvent.Illness)
         {
-            totalMoney -= (dailyCost + 100);
-            Debug.Log("[EVENT] Illness! Day skipped. Incurred daily cost + medicine.");
+            totalMoney -= 100; // Medicine cost only, day no longer skipped
+            Debug.Log("[EVENT] Illness! Movement speed reduced by 25%. Paid $100 for medicine.");
         }
         else if (currentEvent == DailyEvent.Bagyo)
         {
-            totalMoney -= dailyCost;
-            Debug.Log("[EVENT] Bagyo! Day skipped. Incurred daily cost.");
+            Debug.Log("[EVENT] Bagyo! Customers will be extremely rare today.");
         }
 
-        if (startOfDayWindow != null)
+        if (startOfDayWindow != null && currentEvent != DailyEvent.None)
         {
             isDayActive = false; // Pause day until OK is clicked
             startOfDayWindow.SetActive(true);
@@ -154,12 +173,6 @@ public class GameManager : MonoBehaviour
     {
         if (startOfDayWindow != null) startOfDayWindow.SetActive(false);
         
-        if (currentEvent == DailyEvent.Illness || currentEvent == DailyEvent.Bagyo)
-        {
-            EndDay();
-            return;
-        }
-
         isDayActive = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -167,6 +180,9 @@ public class GameManager : MonoBehaviour
 
     private DailyEvent RollForEvent()
     {
+        // Don't have an event for Day 1
+        if (currentDay == 1) return DailyEvent.None;
+
         DailyEvent randomEvent = DailyEvent.None;
 
         int random100 = Random.Range(1, 101); // 1 to 100
@@ -295,7 +311,7 @@ public class GameManager : MonoBehaviour
         UpdateHUD();
     }
 
-    private void EndDay()
+    public void EndDay()
     {
         isDayActive = false;
         dayEndWindow.SetActive(true);
@@ -327,8 +343,35 @@ public class GameManager : MonoBehaviour
             endOfDayNewsText.text = $"NEWS FORECAST:\n{GetEventForecast(nextDayEvent)}";
         }
 
+        SaveGame();
         UpdateShopAmountsUI();
         UpdateUpgradesUI();
+    }
+
+    public void SaveGame()
+    {
+        SaveData data = new SaveData();
+        data.totalMoney = totalMoney;
+        data.currentDay = currentDay;
+        data.doughMakingUpgradeLevel = doughMakingUpgradeLevel;
+        data.bakingUpgradeLevel = bakingUpgradeLevel;
+        data.burnTimeUpgradeLevel = burnTimeUpgradeLevel;
+
+        SaveSystem.Save(SaveSystem.SelectedSlot, data);
+    }
+
+    public void LoadGame()
+    {
+        SaveData data = SaveSystem.Load(SaveSystem.SelectedSlot);
+        totalMoney = data.totalMoney;
+        currentDay = data.currentDay;
+        doughMakingUpgradeLevel = data.doughMakingUpgradeLevel;
+        bakingUpgradeLevel = data.bakingUpgradeLevel;
+        burnTimeUpgradeLevel = data.burnTimeUpgradeLevel;
+
+        UpdateHUD();
+        UpdateUpgradesUI();
+        Debug.Log($"[LOAD] Slot {SaveSystem.SelectedSlot} Loaded. Day: {currentDay}");
     }
 
     private string GetEventDescription(DailyEvent e)
@@ -336,12 +379,12 @@ public class GameManager : MonoBehaviour
         switch (e)
         {
             case DailyEvent.Oversleep: return "You overslept! Preparation time is shortened.";
-            case DailyEvent.Bagyo: return "Typhoon! No customers today, but you still pay rent.";
+            case DailyEvent.Bagyo: return "Typhoon! Customers will be extremely rare today.";
             case DailyEvent.Infestation: return "Pest Infestation! Half of your ingredients were ruined.";
             case DailyEvent.Vlogger: return "A famous vlogger might visit today. Serve them well!";
             case DailyEvent.Holiday: return "It's a Holiday! Fewer customers, but they buy in bulk.";
             case DailyEvent.SchoolEvent: return "School Event nearby! Many students, but small orders.";
-            case DailyEvent.Illness: return "You got sick! Day skipped, and you paid $100 for medicine.";
+            case DailyEvent.Illness: return "You got sick! Movement speed is reduced by 25%. Paid $100 for medicine.";
             default: return "Just a regular day.";
         }
     }
@@ -356,7 +399,7 @@ public class GameManager : MonoBehaviour
             case DailyEvent.Vlogger: return "Rumors say a famous food vlogger is dropping by town!";
             case DailyEvent.Holiday: return "A local holiday is coming up tomorrow!";
             case DailyEvent.SchoolEvent: return "Local schools are preparing for a massive event.";
-            case DailyEvent.Illness: return "Flu season is here. Stay healthy and take your vitamins!";
+            case DailyEvent.Illness: return "Flu season is here. Drink water and rest up!";
             default: return "Normal weather and a regular day expected tomorrow.";
         }
     }
@@ -434,6 +477,7 @@ public class GameManager : MonoBehaviour
                 UpdateHUD();
                 UpdateShopAmountsUI();
                 UpdateUpgradesUI();
+                SaveGame();
                 Debug.Log($"[SHOP] Dough Making Upgraded to level {doughMakingUpgradeLevel}");
             }
         }
@@ -451,6 +495,7 @@ public class GameManager : MonoBehaviour
                 UpdateHUD();
                 UpdateShopAmountsUI();
                 UpdateUpgradesUI();
+                SaveGame();
                 Debug.Log($"[SHOP] Baking Upgraded to level {bakingUpgradeLevel}");
             }
         }
@@ -468,6 +513,7 @@ public class GameManager : MonoBehaviour
                 UpdateHUD();
                 UpdateShopAmountsUI();
                 UpdateUpgradesUI();
+                SaveGame();
                 Debug.Log($"[SHOP] Burn Time Upgraded to level {burnTimeUpgradeLevel}");
             }
         }

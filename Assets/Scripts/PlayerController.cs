@@ -40,7 +40,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (isDashing) return;
+        if (isDashing || PauseMenuUI.isPaused) return;
 
         HandleInput();
         HandleMovement();
@@ -124,8 +124,14 @@ public class PlayerController : MonoBehaviour
 
         if (move.magnitude > 0.1f)
         {
+            float effectiveSpeed = moveSpeed;
+            if (GameManager.Instance != null && GameManager.Instance.currentEvent == DailyEvent.Illness)
+            {
+                effectiveSpeed *= 0.75f;
+            }
+
             // Move character in world space
-            characterController.Move(move * moveSpeed * Time.deltaTime);
+            characterController.Move(move * effectiveSpeed * Time.deltaTime);
 
             // Rotate character model to face movement direction
             Quaternion targetRotation = Quaternion.LookRotation(move);
