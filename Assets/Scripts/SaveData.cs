@@ -11,5 +11,6 @@ public class SaveData
     public int bakingUpgradeLevel = 0;
     public int burnTimeUpgradeLevel = 0;
 
-    // Optional: Add other persistent stats here (e.g., total items baked)
+    // Premium currency
+    public int totalGems = 0;
 }

@@ -44,6 +44,12 @@ public class ProcessingTable : Counter
                 switch (data.itemType)
                 {
                     case ItemType.Dough:
+                        // No-Minigame buff skips the kneading minigame
+                        if (AdManager.Instance != null && AdManager.Instance.HasNoMinigame())
+                        {
+                            SwapPrefab(doughKneadPrefab, ItemType.DoughKnead, "Dough → Dough Knead (No-Minigame Buff)");
+                            return;
+                        }
                         if (KneadingMinigameUI.Instance != null)
                         {
                             KneadingMinigameUI.Instance.StartMinigame(player, () => {
@@ -58,6 +64,12 @@ public class ProcessingTable : Counter
                         break;
 
                     case ItemType.DoughKnead:
+                        // No-Minigame buff skips the shaping minigame
+                        if (AdManager.Instance != null && AdManager.Instance.HasNoMinigame())
+                        {
+                            SwapPrefab(shapedDoughPrefab, ItemType.ShapedDough, "Dough Knead → Shaped Dough (No-Minigame Buff)");
+                            return;
+                        }
                         if (ShapingMinigameUI.Instance != null)
                         {
                             ShapingMinigameUI.Instance.StartMinigame(player, () => {

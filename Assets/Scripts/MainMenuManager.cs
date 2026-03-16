@@ -10,6 +10,7 @@ public class MainMenuManager : MonoBehaviour
     public GameObject mainMenuPanel;
     public GameObject settingsPanel;
     public GameObject saveSlotsPanel;
+    public GameObject gemShopPanel; // Main Menu Gem Shop panel
 
     [Header("Save Slot UI")]
     public TextMeshProUGUI[] slotDescTexts; // Assign 3 texts for Slot 1, 2, 3
@@ -27,6 +28,7 @@ public class MainMenuManager : MonoBehaviour
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (saveSlotsPanel != null) saveSlotsPanel.SetActive(false);
+        if (gemShopPanel != null) gemShopPanel.SetActive(false);
 
         // Sync sliders with current levels
         if (SettingsManager.Instance != null)
@@ -57,6 +59,10 @@ public class MainMenuManager : MonoBehaviour
             else if (saveSlotsPanel != null && saveSlotsPanel.activeSelf)
             {
                 CloseSaveSlots();
+            }
+            else if (gemShopPanel != null && gemShopPanel.activeSelf)
+            {
+                CloseGemShop();
             }
         }
     }
@@ -132,6 +138,35 @@ public class MainMenuManager : MonoBehaviour
     {
         Debug.Log("Quitting Application...");
         Application.Quit();
+    }
+
+    // ─── Gem Shop ────────────────────────────────────────────────────
+
+    public void OpenGemShop()
+    {
+        if (gemShopPanel != null)
+        {
+            mainMenuPanel.SetActive(false);
+            gemShopPanel.SetActive(true);
+            RefreshGemShopUI();
+        }
+    }
+
+    public void CloseGemShop()
+    {
+        if (gemShopPanel != null)
+        {
+            gemShopPanel.SetActive(false);
+            mainMenuPanel.SetActive(true);
+        }
+    }
+
+    private void RefreshGemShopUI()
+    {
+        // The panel's own GemManager-linked buttons handle display.
+        // If GemManager has a refresh call, invoke it.
+        if (GemManager.Instance != null)
+            GemManager.Instance.UpdateHUD();
     }
 
     // Audio Methods called by Slider OnValueChanged

@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     public int totalMoney = 100;
     public int moneyEarnedToday = 0;
     public int currentDay = 1;
+    public int gemsConvertedToday = 0; // for end-of-day stats
 
     [Header("Upgrades")]
     public int doughMakingUpgradeLevel = 0;
@@ -69,13 +70,16 @@ public class GameManager : MonoBehaviour
     [Header("End Day UI")]
     public GameObject dayEndWindow;
     public TextMeshProUGUI statsText;
+    // "Watch Ad" button object inside the dayEndWindow (optional)
+    public GameObject watchAdButtonObj;
 
     [Header("HUD")]
     public GameObject hudPanel;
     public GameObject prepPhaseIndicator;
     public TextMeshProUGUI clockText;
     public TextMeshProUGUI moneyText;
-    public TextMeshProUGUI dayText; // New day counter HUD text
+    public TextMeshProUGUI dayText;
+    public TextMeshProUGUI gemText; // Gem HUD display
 
     [Header("Shop Settings")]
     public int flourRestockCost = 10;
@@ -131,10 +135,15 @@ public class GameManager : MonoBehaviour
             LoadGame();
         }
 
+        // Clear ad buff from previous day
+        if (AdManager.Instance != null)
+            AdManager.Instance.ClearBuff();
+
         currentEvent = nextDayEvent;
 
         gameTimeTimer = 0f;
         moneyEarnedToday = 0;
+        gemsConvertedToday = 0;
         dayEndWindow.SetActive(false);
 
         hasSpawnedVloggerToday = false;
@@ -274,6 +283,10 @@ public class GameManager : MonoBehaviour
         if (dayText != null)
             dayText.text = $"Day {currentDay}";
 
+        // Gem HUD
+        if (gemText != null)
+            gemText.text = $"💎 {(GemManager.Instance != null ? GemManager.Instance.totalGems : 0)}";
+
         // Show prep phase indicator only before service time
         if (prepPhaseIndicator != null)
             prepPhaseIndicator.SetActive(!IsServiceTime());
@@ -288,6 +301,14 @@ public class GameManager : MonoBehaviour
                 eventStr += "\n[VIRAL EFFECT]";
             else if (viralFailedDaysRemaining > 0)
                 eventStr += "\n[FLOPPED EFFECT]";
+
+            // Show active ad buff if any
+            if (AdManager.Instance != null)
+            {
+                string buffLabel = AdManager.Instance.GetActiveBuffLabel();
+                if (!string.IsNullOrEmpty(buffLabel))
+                    eventStr += $"\n{buffLabel}";
+            }
                 
             eventHUDText.text = eventStr;
         }
@@ -328,11 +349,24 @@ public class GameManager : MonoBehaviour
         if (viralDaysRemaining > 0) viralDaysRemaining--;
         if (viralFailedDaysRemaining > 0) viralFailedDaysRemaining--;
 
+        // Exchange gems → money (1:10)
+        gemsConvertedToday = 0;
+        if (GemManager.Instance != null && GemManager.Instance.totalGems > 0)
+        {
+            gemsConvertedToday = GemManager.Instance.totalGems;
+            int gemMoney = GemManager.Instance.ExchangeGemsForMoney();
+            totalMoney += gemMoney;
+        }
+
         if (statsText != null)
         {
+            string gemLine = gemsConvertedToday > 0
+                ? $"Gems Exchanged: 💎{gemsConvertedToday} → +${gemsConvertedToday * 10}\n"
+                : "";
             statsText.text = $"DAY {currentDay} COMPLETE\n\n" +
                              $"Money Earned: ${moneyEarnedToday}\n" +
                              $"Daily Costs: ${dailyCost}\n" +
+                             gemLine +
                              $"Total Balance: ${totalMoney}";
         }
 
@@ -342,6 +376,10 @@ public class GameManager : MonoBehaviour
         {
             endOfDayNewsText.text = $"NEWS FORECAST:\n{GetEventForecast(nextDayEvent)}";
         }
+
+        // Show the Ad offer button if AdManager is present
+        if (watchAdButtonObj != null)
+            watchAdButtonObj.SetActive(AdManager.Instance != null);
 
         SaveGame();
         UpdateShopAmountsUI();
@@ -356,6 +394,7 @@ public class GameManager : MonoBehaviour
         data.doughMakingUpgradeLevel = doughMakingUpgradeLevel;
         data.bakingUpgradeLevel = bakingUpgradeLevel;
         data.burnTimeUpgradeLevel = burnTimeUpgradeLevel;
+        data.totalGems = GemManager.Instance != null ? GemManager.Instance.totalGems : 0;
 
         SaveSystem.Save(SaveSystem.SelectedSlot, data);
     }
@@ -369,9 +408,38 @@ public class GameManager : MonoBehaviour
         bakingUpgradeLevel = data.bakingUpgradeLevel;
         burnTimeUpgradeLevel = data.burnTimeUpgradeLevel;
 
+        // Load gems
+        if (GemManager.Instance != null)
+        {
+            GemManager.Instance.totalGems = data.totalGems;
+            GemManager.Instance.UpdateHUD();
+        }
+
         UpdateHUD();
         UpdateUpgradesUI();
         Debug.Log($"[LOAD] Slot {SaveSystem.SelectedSlot} Loaded. Day: {currentDay}");
+    }
+
+    // ─── Gem Shop helpers (can be called from UI buttons) ────────────
+
+    public void OpenGemShop()
+    {
+        if (GemManager.Instance != null)
+            GemManager.Instance.OpenGemShop();
+    }
+
+    public void CloseGemShop()
+    {
+        if (GemManager.Instance != null)
+            GemManager.Instance.CloseGemShop();
+    }
+
+    // ─── Ad helpers ──────────────────────────────────────────────────
+
+    public void ShowAdOffer()
+    {
+        if (AdManager.Instance != null)
+            AdManager.Instance.ShowAdOffer();
     }
 
     private string GetEventDescription(DailyEvent e)

@@ -130,6 +130,12 @@ public class PlayerController : MonoBehaviour
                 effectiveSpeed *= 0.75f;
             }
 
+            // Speed boost ad buff (+25%)
+            if (AdManager.Instance != null && AdManager.Instance.HasSpeedBoost())
+            {
+                effectiveSpeed *= 1.25f;
+            }
+
             // Move character in world space
             characterController.Move(move * effectiveSpeed * Time.deltaTime);
 

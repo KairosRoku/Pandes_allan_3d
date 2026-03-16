@@ -10,6 +10,7 @@ public class PauseMenuUI : MonoBehaviour
     [Header("Panels")]
     public GameObject pauseMenuPanel;
     public GameObject settingsPanel;
+    public GameObject gemShopPanel; // Gem Shop panel inside pause menu
 
     [Header("Audio Sliders")]
     public Slider masterSlider;
@@ -23,6 +24,7 @@ public class PauseMenuUI : MonoBehaviour
     {
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (gemShopPanel != null) gemShopPanel.SetActive(false);
 
         // Sync sliders with current levels
         if (SettingsManager.Instance != null)
@@ -40,6 +42,10 @@ public class PauseMenuUI : MonoBehaviour
             if (settingsPanel != null && settingsPanel.activeSelf)
             {
                 CloseSettings();
+            }
+            else if (gemShopPanel != null && gemShopPanel.activeSelf)
+            {
+                CloseGemShopPanel();
             }
             else
             {
@@ -99,6 +105,35 @@ public class PauseMenuUI : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.EndDay();
+        }
+    }
+
+    // ─── Gem Shop ────────────────────────────────────────────────────
+
+    public void OpenGemShopPanel()
+    {
+        if (gemShopPanel != null)
+        {
+            pauseMenuPanel.SetActive(false);
+            gemShopPanel.SetActive(true);
+        }
+        else if (GemManager.Instance != null)
+        {
+            // Fallback: use GemManager's panel if it's a separate world-space panel
+            GemManager.Instance.OpenGemShop();
+        }
+    }
+
+    public void CloseGemShopPanel()
+    {
+        if (gemShopPanel != null)
+        {
+            gemShopPanel.SetActive(false);
+            pauseMenuPanel.SetActive(true);
+        }
+        else if (GemManager.Instance != null)
+        {
+            GemManager.Instance.CloseGemShop();
         }
     }
 
