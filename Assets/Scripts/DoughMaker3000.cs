@@ -7,10 +7,18 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
     public DoughBin doughBin;
     public GameObject doughItemPrefab;
 
-    [Header("UI Indicators")]
-    public GameObject flourIndicator;
-    public GameObject sugarIndicator;
-    public GameObject waterIndicator;
+    [Header("UI Indicators (Checked)")]
+    [UnityEngine.Serialization.FormerlySerializedAs("flourIndicator")]
+    public GameObject flourIndicatorChecked;
+    [UnityEngine.Serialization.FormerlySerializedAs("sugarIndicator")]
+    public GameObject sugarIndicatorChecked;
+    [UnityEngine.Serialization.FormerlySerializedAs("waterIndicator")]
+    public GameObject waterIndicatorChecked;
+
+    [Header("UI Indicators (Unchecked)")]
+    public GameObject flourIndicatorUnchecked;
+    public GameObject sugarIndicatorUnchecked;
+    public GameObject waterIndicatorUnchecked;
 
     [Header("Mixing Timing")]
     public float baseMixingTime = 15f;
@@ -154,9 +162,13 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
 
     private void UpdateUI()
     {
-        if (flourIndicator != null) flourIndicator.SetActive(hasFlour);
-        if (sugarIndicator != null) sugarIndicator.SetActive(hasSugar);
-        if (waterIndicator != null) waterIndicator.SetActive(hasWater);
+        if (flourIndicatorChecked != null) flourIndicatorChecked.SetActive(hasFlour);
+        if (sugarIndicatorChecked != null) sugarIndicatorChecked.SetActive(hasSugar);
+        if (waterIndicatorChecked != null) waterIndicatorChecked.SetActive(hasWater);
+
+        if (flourIndicatorUnchecked != null) flourIndicatorUnchecked.SetActive(!hasFlour);
+        if (sugarIndicatorUnchecked != null) sugarIndicatorUnchecked.SetActive(!hasSugar);
+        if (waterIndicatorUnchecked != null) waterIndicatorUnchecked.SetActive(!hasWater);
     }
 
     public string GetInteractText(PlayerController player)
