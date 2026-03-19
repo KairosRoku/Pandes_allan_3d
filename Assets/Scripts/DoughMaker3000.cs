@@ -24,6 +24,9 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
     public float baseMixingTime = 15f;
     private float mixingTimer;
     private bool isMixing;
+    private Coroutine breatheCoroutine;
+    private Vector3 originalScale;
+    private DoughMakerVFX vfx;
 
     public float CurrentMixingTime
     {
@@ -45,6 +48,12 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
     private bool hasFlour;
     private bool hasSugar;
     private bool hasWater;
+
+    private void Awake()
+    {
+        originalScale = transform.localScale;
+        vfx = GetComponent<DoughMakerVFX>();
+    }
 
     private void Start()
     {
@@ -99,6 +108,7 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
                 {
                     Debug.Log($"[DOUGHMAKER] Accepted {data.itemType}. Consuming item.");
                     Destroy(player.RemoveHeldItem());
+                    if (SFXManager.Instance != null) SFXManager.Instance.PlayItemOnDoughMaker();
                     UpdateUI();
                     CheckIngredients();
                 }
@@ -134,6 +144,12 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
         if (timerCanvas != null) timerCanvas.SetActive(true);
         if (timerFillImage != null) timerFillImage.fillAmount = 0f;
 
+        // Start breathing animation + VFX while mixing
+        if (breatheCoroutine != null) StopCoroutine(breatheCoroutine);
+        breatheCoroutine = StartCoroutine(FlavorEffects.Breathe(transform, peakScale: 1.04f, period: 1.2f));
+        if (vfx != null) vfx.StartVFX();
+        if (SFXManager.Instance != null) SFXManager.Instance.StartDoughMaker();
+
         Debug.Log("[DOUGHMAKER] Mixing started...");
     }
 
@@ -143,6 +159,16 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
         hasFlour = false;
         hasSugar = false;
         hasWater = false;
+
+        // Stop breathing + VFX and restore exact original scale
+        if (breatheCoroutine != null)
+        {
+            StopCoroutine(breatheCoroutine);
+            breatheCoroutine = null;
+        }
+        transform.localScale = originalScale;
+        if (vfx != null) vfx.StopVFX();
+        if (SFXManager.Instance != null) SFXManager.Instance.StopDoughMaker();
         
         if (timerCanvas != null) timerCanvas.SetActive(false);
         

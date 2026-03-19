@@ -108,6 +108,8 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         customerQueue.Add(c);
         UpdateQueuePositions();
         
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayCustomerIn();
+
         // If this is the first customer, start their timer
         if (customerQueue.Count == 1)
         {
@@ -163,6 +165,9 @@ public class CustomerWindow : MonoBehaviour, IInteractable
                     {
                         // Success!
                         int payment = current.pandesalRequirement * 2;
+                        
+                        if (SFXManager.Instance != null) SFXManager.Instance.PlayCustomerPaid();
+                        
                         GameManager.Instance.AddMoney(payment);
                         Debug.Log("[SERVICE] Order completed!");
 

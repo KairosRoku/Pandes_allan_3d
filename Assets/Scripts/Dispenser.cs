@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class Dispenser : MonoBehaviour, IInteractable
+public class Dispenser : MonoBehaviour, IInteractable, ISaveable
 {
     public GameObject prefab;
     public ItemType itemType;
@@ -42,7 +42,7 @@ public class Dispenser : MonoBehaviour, IInteractable
             if (isLimited)
             {
                 currentAmount--;
-                UpdateAmountText();
+                UpdateAmountText(wiggle: true);
             }
         }
         else if (player.IsHoldingItem())
@@ -56,7 +56,7 @@ public class Dispenser : MonoBehaviour, IInteractable
                 {
                     currentAmount++;
                     if (currentAmount > maxAmount) currentAmount = maxAmount;
-                    UpdateAmountText();
+                    UpdateAmountText(wiggle: true);
                 }
                 Debug.Log($"[DISPENSER] Player returned {itemType}.");
             }
@@ -80,15 +80,41 @@ public class Dispenser : MonoBehaviour, IInteractable
         {
             currentAmount += amount;
             if (currentAmount > maxAmount) currentAmount = maxAmount;
-            UpdateAmountText();
+            UpdateAmountText(wiggle: true);
         }
     }
 
-    private void UpdateAmountText()
+    private void UpdateAmountText(bool wiggle = false)
     {
         if (amountText != null)
         {
             amountText.text = currentAmount.ToString();
+            if (wiggle)
+            {
+                var rt = (amountText as TextMeshProUGUI)?.GetComponent<RectTransform>();
+                if (rt != null)
+                    StartCoroutine(FlavorEffects.Wiggle(rt));
+            }
         }
+    }
+
+    // ── ISaveable ───────────────────────────────────────────────────
+
+    public StationSaveRecord CaptureState()
+    {
+        return new StationSaveRecord
+        {
+            scenePath   = WorldStateSaver.GetScenePath(gameObject),
+            itemType    = ItemType.None,
+            itemCount   = 0,
+            stockAmount = isLimited ? currentAmount : -1
+        };
+    }
+
+    public void RestoreState(StationSaveRecord record)
+    {
+        if (!isLimited || record.stockAmount < 0) return;
+        currentAmount = Mathf.Clamp(record.stockAmount, 0, maxAmount);
+        UpdateAmountText();
     }
 }

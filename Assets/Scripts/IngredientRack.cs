@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class IngredientRack : MonoBehaviour, IInteractable
+public class IngredientRack : MonoBehaviour, IInteractable, ISaveable
 {
     public GameObject ingredientPrefab;
     public ItemType itemType;
@@ -39,7 +39,7 @@ public class IngredientRack : MonoBehaviour, IInteractable
                 {
                     currentAmount++;
                     if (currentAmount > maxAmount) currentAmount = maxAmount;
-                    UpdateAmountText();
+                    UpdateAmountText(wiggle: true);
                 }
                 Debug.Log($"[INGREDIENT RACK] Player returned {itemType}.");
             }
@@ -58,7 +58,7 @@ public class IngredientRack : MonoBehaviour, IInteractable
             if (isLimited)
             {
                 currentAmount--;
-                UpdateAmountText();
+                UpdateAmountText(wiggle: true);
             }
         }
     }
@@ -80,15 +80,42 @@ public class IngredientRack : MonoBehaviour, IInteractable
         {
             currentAmount += amount;
             if (currentAmount > maxAmount) currentAmount = maxAmount;
-            UpdateAmountText();
+            UpdateAmountText(wiggle: true);
         }
     }
 
-    private void UpdateAmountText()
+    private void UpdateAmountText(bool wiggle = false)
     {
         if (amountText != null)
         {
             amountText.text = currentAmount.ToString();
+            if (wiggle)
+            {
+                // TMP_Text may be a TextMeshProUGUI (Canvas) or TextMeshPro (world)
+                var rt = (amountText as TextMeshProUGUI)?.GetComponent<RectTransform>();
+                if (rt != null)
+                    StartCoroutine(FlavorEffects.Wiggle(rt));
+            }
         }
+    }
+
+    // ── ISaveable ─────────────────────────────────────────────────────
+
+    public StationSaveRecord CaptureState()
+    {
+        return new StationSaveRecord
+        {
+            scenePath   = WorldStateSaver.GetScenePath(gameObject),
+            itemType    = ItemType.None,
+            itemCount   = 0,
+            stockAmount = isLimited ? currentAmount : -1  // -1 = infinite (skip restore)
+        };
+    }
+
+    public void RestoreState(StationSaveRecord record)
+    {
+        if (!isLimited || record.stockAmount < 0) return;
+        currentAmount = Mathf.Clamp(record.stockAmount, 0, maxAmount);
+        UpdateAmountText();
     }
 }

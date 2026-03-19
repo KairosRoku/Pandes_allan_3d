@@ -106,7 +106,8 @@ public class PackingMinigameUI : MonoBehaviour
         {
             currentTrayData.count--;
             currentBagData.count++;
-            UpdateUI();
+            if (SFXManager.Instance != null) SFXManager.Instance.PlayPandesalPlace();
+            UpdateUI(wiggleTray: true, wiggleBag: true);
         }
     }
 
@@ -118,17 +119,33 @@ public class PackingMinigameUI : MonoBehaviour
         currentTrayData.count -= toMove;
         currentBagData.count += toMove;
 
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayPandesalPlace();
+
         RefreshTrayVisuals();
-        UpdateUI();
+        UpdateUI(wiggleTray: true, wiggleBag: true);
     }
 
-    private void UpdateUI()
+    private void UpdateUI(bool wiggleTray = false, bool wiggleBag = false)
     {
         if (currentTrayData != null && trayCountText != null)
+        {
             trayCountText.text = "On Tray: " + currentTrayData.count;
+            if (wiggleTray)
+            {
+                var rt = trayCountText.GetComponent<RectTransform>();
+                if (rt != null) StartCoroutine(FlavorEffects.Wiggle(rt));
+            }
+        }
         
         if (currentBagData != null && bagCountText != null)
+        {
             bagCountText.text = "In Bag: " + currentBagData.count;
+            if (wiggleBag)
+            {
+                var rt = bagCountText.GetComponent<RectTransform>();
+                if (rt != null) StartCoroutine(FlavorEffects.Wiggle(rt));
+            }
+        }
     }
 
     public void CloseMinigame()
@@ -150,8 +167,6 @@ public class PackingMinigameUI : MonoBehaviour
         if (currentTrayData != null && currentTrayData.count <= 0)
         {
             Debug.Log("[PACKING] Tray empty. Destroying tray object.");
-            // Assuming the ItemData is on a child or the root of the tray object
-            // Usually currentTrayData.gameObject is the thing to destroy
             Destroy(currentTrayData.gameObject);
         }
     }

@@ -6,7 +6,7 @@ using UnityEngine;
 /// Subclasses override PlaceItem, PickUpItem, and TryHandleSpecialInteraction
 /// to add behaviour (e.g. dough processing, tray combining).
 /// </summary>
-public class Counter : MonoBehaviour, IInteractable
+public class Counter : MonoBehaviour, IInteractable, ISaveable
 {
     [Tooltip("Where items are placed on this counter surface.")]
     public Transform itemPlacementPoint;
@@ -73,6 +73,8 @@ public class Counter : MonoBehaviour, IInteractable
 
         itemOnCounter = player.RemoveHeldItem();
         SnapToPlacementPoint(itemOnCounter);
+        
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayItemPutOnTable();
 
         Debug.Log($"[COUNTER] Placed '{itemOnCounter.name}' on '{gameObject.name}'.");
     }
@@ -199,5 +201,56 @@ public class Counter : MonoBehaviour, IInteractable
             return $"Pick Up {itemOnCounter.name} (E)";
         }
         return "Place Item (E)";
+    }
+
+    // ── ISaveable ───────────────────────────────────────────────────
+
+    public virtual StationSaveRecord CaptureState()
+    {
+        var record = new StationSaveRecord
+        {
+            scenePath = WorldStateSaver.GetScenePath(gameObject),
+            itemType = ItemType.None,
+            itemCount = 0,
+            stockAmount = 0
+        };
+
+        if (itemOnCounter != null)
+        {
+            var data = itemOnCounter.GetComponentInChildren<ItemData>();
+            if (data != null)
+            {
+                record.itemType = data.itemType;
+                record.itemCount = data.count;
+            }
+        }
+
+        return record;
+    }
+
+    public virtual void RestoreState(StationSaveRecord record)
+    {
+        if (itemOnCounter != null)
+        {
+            Destroy(itemOnCounter);
+            itemOnCounter = null;
+        }
+
+        if (record.itemType != ItemType.None && WorldStateSaver.Instance != null)
+        {
+            GameObject prefab = WorldStateSaver.Instance.GetPrefab(record.itemType);
+            if (prefab != null)
+            {
+                itemOnCounter = Instantiate(prefab);
+                SnapToPlacementPoint(itemOnCounter);
+
+                var data = itemOnCounter.GetComponentInChildren<ItemData>();
+                if (data != null)
+                {
+                    data.itemType = record.itemType;
+                    data.count = record.itemCount;
+                }
+            }
+        }
     }
 }

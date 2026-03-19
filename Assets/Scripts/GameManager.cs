@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.UI;
 
 public enum DailyEvent
 {
@@ -18,6 +19,10 @@ public enum DailyEvent
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+
+    [Header("Debug")]
+    [Tooltip("If checked, pressing F11 skips to Service Phase and F12 gives instant dough.")]
+    public bool allowDebugKeys = false;
 
     [Header("Time Settings")]
     public float realSecondsPerGameHour = 60f; // 1 game hour = 60 real seconds by default
@@ -81,6 +86,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI dayText;
     public TextMeshProUGUI gemText; // Gem HUD display
 
+    [Header("VFX")]
+    public MoneyVFX moneyVFX; // Assign in Inspector — place near the CustomerWindow
+
     [Header("Shop Settings")]
     public int flourRestockCost = 10;
     public int sugarRestockCost = 10;
@@ -135,9 +143,9 @@ public class GameManager : MonoBehaviour
             LoadGame();
         }
 
-        // Clear ad buff from previous day
+        // Apply ad buff and clear lockout for the new day
         if (AdManager.Instance != null)
-            AdManager.Instance.ClearBuff();
+            AdManager.Instance.StartNewDay();
 
         currentEvent = nextDayEvent;
 
@@ -256,6 +264,28 @@ public class GameManager : MonoBehaviour
         {
             gameTimeTimer += Time.deltaTime;
             
+            // Debug / Testing Skips
+            if (allowDebugKeys && UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current.f11Key.wasPressedThisFrame)
+                {
+                    float skipTime = (serviceStartHour - startHour) * realSecondsPerGameHour;
+                    if (gameTimeTimer < skipTime)
+                    {
+                        gameTimeTimer = skipTime;
+                        Debug.Log("[DEBUG] F11 Pressed: Skipped prep phase to 5 AM!");
+                    }
+                }
+                if (UnityEngine.InputSystem.Keyboard.current.f12Key.wasPressedThisFrame)
+                {
+                    if (AdManager.Instance != null)
+                    {
+                        Debug.Log("[DEBUG] F12 Pressed: Applying Instant Dough!");
+                        AdManager.Instance.ApplyInstantDoughBuff();
+                    }
+                }
+            }
+
             UpdateHUD();
 
             float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
@@ -330,12 +360,34 @@ public class GameManager : MonoBehaviour
         totalMoney += amount;
         moneyEarnedToday += amount;
         UpdateHUD();
+
+        // Trigger coin burst VFX at the selling point
+        if (moneyVFX != null) moneyVFX.PlayBurst();
+
+        // Wiggle the money text to provide juicy feedback
+        if (moneyText != null)
+        {
+            var rt = moneyText.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                // Stop any existing wiggle before starting a new one
+                StopCoroutine("WiggleMoneyRoutine");
+                StartCoroutine(WiggleMoneyRoutine(rt));
+            }
+        }
+    }
+
+    private IEnumerator WiggleMoneyRoutine(RectTransform rt)
+    {
+        yield return FlavorEffects.Wiggle(rt);
     }
 
     public void EndDay()
     {
         isDayActive = false;
         dayEndWindow.SetActive(true);
+        
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayDayEnd();
 
         // Unlock cursor for UI
         Cursor.lockState = CursorLockMode.None;
@@ -368,6 +420,9 @@ public class GameManager : MonoBehaviour
                              $"Daily Costs: ${dailyCost}\n" +
                              gemLine +
                              $"Total Balance: ${totalMoney}";
+
+            // Wave the money text for a satisfying end-of-day payoff
+            StartCoroutine(FlavorEffects.WaveText(statsText, duration: 2.0f, amplitude: 8f, frequency: 2.5f));
         }
 
         nextDayEvent = RollForEvent();
@@ -396,6 +451,11 @@ public class GameManager : MonoBehaviour
         data.burnTimeUpgradeLevel = burnTimeUpgradeLevel;
         data.totalGems = GemManager.Instance != null ? GemManager.Instance.totalGems : 0;
 
+        if (WorldStateSaver.Instance != null)
+        {
+            WorldStateSaver.Instance.CaptureWorldState(data);
+        }
+
         SaveSystem.Save(SaveSystem.SelectedSlot, data);
     }
 
@@ -407,6 +467,11 @@ public class GameManager : MonoBehaviour
         doughMakingUpgradeLevel = data.doughMakingUpgradeLevel;
         bakingUpgradeLevel = data.bakingUpgradeLevel;
         burnTimeUpgradeLevel = data.burnTimeUpgradeLevel;
+
+        if (WorldStateSaver.Instance != null)
+        {
+            WorldStateSaver.Instance.RestoreWorldState(data);
+        }
 
         // Load gems
         if (GemManager.Instance != null)
@@ -484,6 +549,7 @@ public class GameManager : MonoBehaviour
         {
             totalMoney -= cost;
             UpdateHUD();
+            if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
             Debug.Log("Bought " + type + " for " + cost);
         }
     }
@@ -509,6 +575,7 @@ public class GameManager : MonoBehaviour
         {
             totalMoney -= cost;
             UpdateHUD();
+            if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
             
             // Refill all dispensers for this type
             Dispenser[] dispensers = FindObjectsOfType<Dispenser>();
@@ -546,6 +613,7 @@ public class GameManager : MonoBehaviour
                 UpdateShopAmountsUI();
                 UpdateUpgradesUI();
                 SaveGame();
+                if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
                 Debug.Log($"[SHOP] Dough Making Upgraded to level {doughMakingUpgradeLevel}");
             }
         }
@@ -564,6 +632,7 @@ public class GameManager : MonoBehaviour
                 UpdateShopAmountsUI();
                 UpdateUpgradesUI();
                 SaveGame();
+                if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
                 Debug.Log($"[SHOP] Baking Upgraded to level {bakingUpgradeLevel}");
             }
         }
@@ -582,6 +651,7 @@ public class GameManager : MonoBehaviour
                 UpdateShopAmountsUI();
                 UpdateUpgradesUI();
                 SaveGame();
+                if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
                 Debug.Log($"[SHOP] Burn Time Upgraded to level {burnTimeUpgradeLevel}");
             }
         }

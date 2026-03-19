@@ -98,6 +98,8 @@ public class KneadingMinigameUI : MonoBehaviour
         currentProgress += progressPerMove;
         UpdateUI();
 
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayKneading();
+
         if (currentProgress >= kneadingGoal)
         {
             CompleteMinigame();

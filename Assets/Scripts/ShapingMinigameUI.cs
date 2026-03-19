@@ -97,6 +97,8 @@ public class ShapingMinigameUI : MonoBehaviour
         currentProgress += amount;
         UpdateUI();
 
+        if (SFXManager.Instance != null && amount > 0.1f) SFXManager.Instance.PlayRolling();
+
         if (currentProgress >= shapingGoal)
         {
             CompleteMinigame();

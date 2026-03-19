@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2924720152338037365}
   - component: {fileID: 2159628032564371893}
   - component: {fileID: 4790086558570434352}
+  - component: {fileID: 3055893357364498447}
   m_Layer: 0
   m_Name: Pandesal 2d
   m_TagString: Untagged
@@ -89,6 +90,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75844ea8645623e4b9e9c663a5f4c176, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DraggablePandesal
+  hoverScale: 1.15
+  hoverDuration: 0.12
 --- !u!225 &4790086558570434352
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -101,3 +104,17 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &3055893357364498447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6804777468829929971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12

@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class DoughBin : MonoBehaviour, IInteractable
+public class DoughBin : MonoBehaviour, IInteractable, ISaveable
 {
     public int doughCount = 0;
     public GameObject doughPrefab;
@@ -17,7 +17,7 @@ public class DoughBin : MonoBehaviour, IInteractable
     public void AddDough()
     {
         doughCount++;
-        UpdateUI();
+        UpdateUI(wiggle: true);
         Debug.Log("Dough added! Total: " + doughCount);
     }
 
@@ -30,7 +30,7 @@ public class DoughBin : MonoBehaviour, IInteractable
             if (data != null && data.itemType == ItemType.Dough)
             {
                 doughCount++;
-                UpdateUI();
+                UpdateUI(wiggle: true);
                 Destroy(player.RemoveHeldItem());
                 Debug.Log("[DOUGH BIN] Player returned a Dough item.");
             }
@@ -38,22 +38,47 @@ public class DoughBin : MonoBehaviour, IInteractable
         else if (doughPrefab != null && doughCount > 0)
         {
             doughCount--;
-            UpdateUI();
+            UpdateUI(wiggle: true);
             GameObject dough = Instantiate(doughPrefab, player.holdPoint.position, player.holdPoint.rotation);
             player.PickUpItem(dough);
         }
     }
 
-    private void UpdateUI()
+    private void UpdateUI(bool wiggle = false)
     {
         if (countText != null)
         {
             countText.text = doughCount.ToString();
+            if (wiggle)
+            {
+                var rt = countText.GetComponent<RectTransform>();
+                if (rt != null)
+                    StartCoroutine(FlavorEffects.Wiggle(rt));
+            }
         }
     }
 
     public string GetInteractText(PlayerController player)
     {
         return "Dough Bin (" + doughCount + ")";
+    }
+
+    // ── ISaveable ─────────────────────────────────────────────────────
+
+    public StationSaveRecord CaptureState()
+    {
+        return new StationSaveRecord
+        {
+            scenePath   = WorldStateSaver.GetScenePath(gameObject),
+            itemType    = ItemType.None,   // DoughBin tracks stock, not a placed item
+            itemCount   = 0,
+            stockAmount = doughCount
+        };
+    }
+
+    public void RestoreState(StationSaveRecord record)
+    {
+        doughCount = record.stockAmount;
+        UpdateUI();
     }
 }

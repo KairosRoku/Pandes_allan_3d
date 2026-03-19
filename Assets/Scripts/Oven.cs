@@ -11,7 +11,7 @@ using UnityEngine.UI;
 ///   Insert → wait bakeTime → BakedPandesalTray
 ///   Wait burnTime total   → BurntPandesalTray
 /// </summary>
-public class Oven : MonoBehaviour, IInteractable
+public class Oven : MonoBehaviour, IInteractable, ISaveable
 {
     [Header("Placement")]
     public Transform trayPoint;
@@ -68,6 +68,15 @@ public class Oven : MonoBehaviour, IInteractable
     private bool       isBaking;
     private bool       isDone;
     private bool       isBurnt;
+    private Coroutine  breatheCoroutine;
+    private Vector3    originalScale;
+    private OvenVFX    ovenVFX;
+
+    private void Awake()
+    {
+        originalScale = transform.localScale;
+        ovenVFX = GetComponent<OvenVFX>();
+    }
 
     private void Start()
     {
@@ -126,6 +135,7 @@ public class Oven : MonoBehaviour, IInteractable
         if (!isDone && timer >= CurrentBakeTime)
         {
             isDone = true;
+            StopBreathe(); // Baking is done — oven goes quiet
             SwapTrayPrefab(bakedPandesalPrefab, "Baking complete — pick up the pandesal!");
         }
 
@@ -185,6 +195,12 @@ public class Oven : MonoBehaviour, IInteractable
         isDone   = false;
         isBurnt  = false;
 
+        // Start breathing to show the oven is working
+        if (breatheCoroutine != null) StopCoroutine(breatheCoroutine);
+        breatheCoroutine = StartCoroutine(FlavorEffects.Breathe(transform, peakScale: 1.04f, period: 1.0f));
+        if (ovenVFX != null) ovenVFX.StartVFX();
+        if (SFXManager.Instance != null) SFXManager.Instance.StartOven();
+
         Debug.Log("[OVEN] Tray inserted. Baking started.");
     }
 
@@ -196,10 +212,24 @@ public class Oven : MonoBehaviour, IInteractable
         isDone      = false;
         isBurnt     = false;
 
+        StopBreathe();
+
         if (timerCanvas != null)
             timerCanvas.SetActive(false);
 
         Debug.Log("[OVEN] Tray removed by player.");
+    }
+
+    private void StopBreathe()
+    {
+        if (breatheCoroutine != null)
+        {
+            StopCoroutine(breatheCoroutine);
+            breatheCoroutine = null;
+        }
+        transform.localScale = originalScale;
+        if (ovenVFX != null) ovenVFX.StopVFX();
+        if (SFXManager.Instance != null) SFXManager.Instance.StopOven();
     }
 
     /// <summary>
@@ -247,5 +277,80 @@ public class Oven : MonoBehaviour, IInteractable
 
         float remaining = CurrentBakeTime - timer;
         return $"Baking… {remaining:F1}s remaining";
+    }
+
+    // ── ISaveable ───────────────────────────────────────────────────
+
+    public StationSaveRecord CaptureState()
+    {
+        var record = new StationSaveRecord
+        {
+            scenePath = WorldStateSaver.GetScenePath(gameObject),
+            itemType = ItemType.None,
+            itemCount = 0,
+            stockAmount = 0
+        };
+
+        if (currentTray != null)
+        {
+            var data = currentTray.GetComponentInChildren<ItemData>();
+            if (data != null)
+            {
+                record.itemType = data.itemType;
+                record.itemCount = data.count;
+            }
+        }
+        return record;
+    }
+
+    public void RestoreState(StationSaveRecord record)
+    {
+        if (currentTray != null)
+        {
+            Destroy(currentTray);
+            currentTray = null;
+        }
+
+        isBaking = false;
+        isDone = false;
+        isBurnt = false;
+        timer = 0f;
+        StopBreathe();
+        if (timerCanvas != null) timerCanvas.SetActive(false);
+
+        if (record.itemType != ItemType.None && WorldStateSaver.Instance != null)
+        {
+            GameObject prefab = WorldStateSaver.Instance.GetPrefab(record.itemType);
+            if (prefab != null)
+            {
+                currentTray = Instantiate(prefab);
+                SnapToTrayPoint(currentTray);
+
+                var data = currentTray.GetComponentInChildren<ItemData>();
+                if (data != null)
+                {
+                    data.itemType = record.itemType;
+                    data.count = record.itemCount;
+                }
+
+                // Restore state based on item type
+                if (record.itemType == ItemType.TrayedShapedDough)
+                {
+                    isBaking = true;
+                    if (breatheCoroutine != null) StopCoroutine(breatheCoroutine);
+                    breatheCoroutine = StartCoroutine(FlavorEffects.Breathe(transform, peakScale: 1.04f, period: 1.0f));
+                    if (ovenVFX != null) ovenVFX.StartVFX();
+                    if (SFXManager.Instance != null) SFXManager.Instance.StartOven();
+                }
+                else if (record.itemType == ItemType.BakedPandesalTray)
+                {
+                    isDone = true;
+                }
+                else if (record.itemType == ItemType.BurntPandesalTray)
+                {
+                    isBurnt = true;
+                }
+            }
+        }
     }
 }

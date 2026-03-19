@@ -57,8 +57,25 @@ public class PauseMenuUI : MonoBehaviour
 
     public void Resume()
     {
-        pauseMenuPanel.SetActive(false);
-        settingsPanel.SetActive(false);
+        if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (gemShopPanel != null) gemShopPanel.SetActive(false);
+
+        // Check if any minigame is active
+        bool inMinigame = false;
+        if (PackingMinigameUI.Instance != null && PackingMinigameUI.Instance.windowRoot.activeSelf) inMinigame = true;
+        if (KneadingMinigameUI.Instance != null && KneadingMinigameUI.Instance.windowRoot.activeSelf) inMinigame = true;
+        if (ShapingMinigameUI.Instance != null && ShapingMinigameUI.Instance.windowRoot.activeSelf) inMinigame = true;
+
+        if (inMinigame)
+        {
+            Time.timeScale = 0f; // Keep time frozen for minigame
+            isPaused = false;
+            Cursor.lockState = CursorLockMode.None; // Ensure cursor is free for minigame
+            Cursor.visible = true;
+            return;
+        }
+
         Time.timeScale = 1f;
         isPaused = false;
 

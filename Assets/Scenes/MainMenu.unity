@@ -579,6 +579,7 @@ GameObject:
   - component: {fileID: 148987782}
   - component: {fileID: 148987781}
   - component: {fileID: 148987780}
+  - component: {fileID: 148987783}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -700,6 +701,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 148987778}
   m_CullTransparentMesh: 1
+--- !u!114 &148987783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148987778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1 &159964777
 GameObject:
   m_ObjectHideFlags: 0
@@ -2170,6 +2185,7 @@ GameObject:
   - component: {fileID: 539858811}
   - component: {fileID: 539858810}
   - component: {fileID: 539858809}
+  - component: {fileID: 539858812}
   m_Layer: 5
   m_Name: Play
   m_TagString: Untagged
@@ -2291,6 +2307,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 539858807}
   m_CullTransparentMesh: 1
+--- !u!114 &539858812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 539858807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1 &547681687
 GameObject:
   m_ObjectHideFlags: 0
@@ -3104,6 +3134,7 @@ GameObject:
   - component: {fileID: 712535346}
   - component: {fileID: 712535345}
   - component: {fileID: 712535344}
+  - component: {fileID: 712535347}
   m_Layer: 5
   m_Name: Slot 2
   m_TagString: Untagged
@@ -3225,6 +3256,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 712535342}
   m_CullTransparentMesh: 1
+--- !u!114 &712535347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 712535342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1 &727200103
 GameObject:
   m_ObjectHideFlags: 0
@@ -3273,6 +3318,7 @@ GameObject:
   - component: {fileID: 731433348}
   - component: {fileID: 731433347}
   - component: {fileID: 731433346}
+  - component: {fileID: 731433349}
   m_Layer: 5
   m_Name: Slot 1
   m_TagString: Untagged
@@ -3394,6 +3440,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 731433344}
   m_CullTransparentMesh: 1
+--- !u!114 &731433349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 731433344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1 &765384287
 GameObject:
   m_ObjectHideFlags: 0
@@ -4527,6 +4587,7 @@ GameObject:
   - component: {fileID: 1151825451}
   - component: {fileID: 1151825450}
   - component: {fileID: 1151825449}
+  - component: {fileID: 1151825452}
   m_Layer: 5
   m_Name: Settings
   m_TagString: Untagged
@@ -4648,6 +4709,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1151825447}
   m_CullTransparentMesh: 1
+--- !u!114 &1151825452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1151825447}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1 &1218147320
 GameObject:
   m_ObjectHideFlags: 0
@@ -5409,7 +5484,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1459488469}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -5452,6 +5527,7 @@ GameObject:
   - component: {fileID: 1508582274}
   - component: {fileID: 1508582273}
   - component: {fileID: 1508582272}
+  - component: {fileID: 1508582275}
   m_Layer: 5
   m_Name: Close
   m_TagString: Untagged
@@ -5573,6 +5649,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1508582270}
   m_CullTransparentMesh: 1
+--- !u!114 &1508582275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1508582270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1001 &1636206642
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7363,6 +7453,7 @@ GameObject:
   - component: {fileID: 2062492358}
   - component: {fileID: 2062492357}
   - component: {fileID: 2062492356}
+  - component: {fileID: 2062492359}
   m_Layer: 5
   m_Name: Slot 3
   m_TagString: Untagged
@@ -7484,6 +7575,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2062492354}
   m_CullTransparentMesh: 1
+--- !u!114 &2062492359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2062492354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1 &2126933305
 GameObject:
   m_ObjectHideFlags: 0
@@ -7496,6 +7601,7 @@ GameObject:
   - component: {fileID: 2126933309}
   - component: {fileID: 2126933308}
   - component: {fileID: 2126933307}
+  - component: {fileID: 2126933310}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -7617,6 +7723,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2126933305}
   m_CullTransparentMesh: 1
+--- !u!114 &2126933310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2126933305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbeb80729167f841b950f0428294bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.1
+  duration: 0.12
 --- !u!1 &2143656755
 GameObject:
   m_ObjectHideFlags: 0

@@ -21,6 +21,9 @@ public class AdManager : MonoBehaviour
 
     // Active buff for the current game day
     [HideInInspector] public DailyBuff activeBuffToday = DailyBuff.None;
+    
+    // Buff acquired from watching an ad, applied on the next day
+    private DailyBuff nextDayBuff = DailyBuff.None;
 
     [Header("Ad UI Panel")]
     public GameObject adPanel;
@@ -37,6 +40,7 @@ public class AdManager : MonoBehaviour
     public float adDuration = 10f;
 
     private bool isWatchingAd = false;
+    private bool hasWatchedAdToday = false;
 
     // Flavor texts that cycle during the fake ad
     private static readonly string[] AdFlavors = new string[]
@@ -77,9 +81,19 @@ public class AdManager : MonoBehaviour
         isWatchingAd = false;
 
         // Reset all UI state
-        if (adCountdownText != null) adCountdownText.text = "Watch a 10-second ad\nfor a FREE daily buff!";
-        if (adFlavorText != null)    adFlavorText.text = "";
-        if (watchAdButton != null)   watchAdButton.interactable = true;
+        if (hasWatchedAdToday)
+        {
+            if (adCountdownText != null) adCountdownText.text = "You have already received a buff today.\nCome back tomorrow!";
+            if (adFlavorText != null)    adFlavorText.text = "";
+            if (watchAdButton != null)   watchAdButton.interactable = false;
+        }
+        else
+        {
+            if (adCountdownText != null) adCountdownText.text = "Watch a 10-second ad\nfor a FREE daily buff!";
+            if (adFlavorText != null)    adFlavorText.text = "";
+            if (watchAdButton != null)   watchAdButton.interactable = true;
+        }
+        
         if (skipAdButton != null)    skipAdButton.gameObject.SetActive(false);
         if (buffResultPanel != null) buffResultPanel.SetActive(false);
 
@@ -132,6 +146,7 @@ public class AdManager : MonoBehaviour
 
         // Ad finished!
         isWatchingAd = false;
+        hasWatchedAdToday = true;
         GrantRandomBuff();
 
         if (adCountdownText != null) adCountdownText.text = "Ad Complete! Buff granted!";
@@ -143,7 +158,7 @@ public class AdManager : MonoBehaviour
         // Pick a random buff (1–3)
         int roll = Random.Range(1, 4);
         DailyBuff buff = (DailyBuff)roll;
-        activeBuffToday = buff;
+        nextDayBuff = buff;
 
         // Show buff result
         if (buffResultPanel != null)
@@ -162,7 +177,7 @@ public class AdManager : MonoBehaviour
         Debug.Log($"[AD] Buff granted: {buff} — {GetBuffDescription(buff)}");
     }
 
-    private void ApplyInstantDoughBuff()
+    public void ApplyInstantDoughBuff()
     {
         // Count available sets of ingredients (flour + sugar + water = 1 dough)
         int flour = GetIngredientTotal(ItemType.Flour);
@@ -235,11 +250,13 @@ public class AdManager : MonoBehaviour
     public bool HasInstantDough() => activeBuffToday == DailyBuff.InstantDough;
     public bool HasNoMinigame() => activeBuffToday == DailyBuff.NoMinigame;
 
-    /// <summary>Call this at the start of each new day to clear the buff.</summary>
-    public void ClearBuff()
+    /// <summary>Call this at the start of each new day to lock in the buff.</summary>
+    public void StartNewDay()
     {
-        activeBuffToday = DailyBuff.None;
-        Debug.Log("[AD] Daily buff cleared for new day.");
+        activeBuffToday = nextDayBuff;
+        nextDayBuff = DailyBuff.None;
+        hasWatchedAdToday = false;
+        Debug.Log($"[AD] New day started. Active Buff: {activeBuffToday}");
     }
 
     private string GetBuffDescription(DailyBuff buff)

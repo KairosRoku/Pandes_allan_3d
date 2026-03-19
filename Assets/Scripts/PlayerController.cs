@@ -80,6 +80,8 @@ public class PlayerController : MonoBehaviour
         isDashing = true;
         lastDashTime = Time.time;
         
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayDash();
+        
         Vector3 dashDir = transform.forward;
         if (dashDir == Vector3.zero) dashDir = Vector3.forward; // Fallback
 
@@ -124,6 +126,8 @@ public class PlayerController : MonoBehaviour
 
         if (move.magnitude > 0.1f)
         {
+            if (SFXManager.Instance != null && !isDashing) SFXManager.Instance.PlayWalk();
+
             float effectiveSpeed = moveSpeed;
             if (GameManager.Instance != null && GameManager.Instance.currentEvent == DailyEvent.Illness)
             {
@@ -191,6 +195,8 @@ public class PlayerController : MonoBehaviour
         if (heldItem != null) return;
 
         Counter.AutoFixBadPivots(item);
+
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayItemGrab();
 
         heldItem = item;
         heldItem.transform.SetParent(holdPoint, true);
