@@ -16,6 +16,15 @@ public class SFXManager : MonoBehaviour
     public AudioSource ovenSource;
     [Tooltip("For looping dough maker mixing")]
     public AudioSource doughMakerSource;
+    [Tooltip("For the main background music")]
+    public AudioSource bgmSource;
+    [Tooltip("For persistent kneading sound")]
+    public AudioSource kneadingSource;
+    [Tooltip("For persistent rolling sound")]
+    public AudioSource rollingSource;
+
+    [Header("Background Music")]
+    public AudioClip backgroundMusicClip;
 
     [Header("UI & Interactions")]
     public AudioClip buttonPressSFX;
@@ -39,7 +48,7 @@ public class SFXManager : MonoBehaviour
     public AudioClip dayEndSFX;
 
     [Header("Player")]
-    public AudioClip walkSFX;
+    public AudioClip[] walkSFX;
     public AudioClip dashSFX;
 
     private float rollSfxTimer = 0f;
@@ -48,6 +57,27 @@ public class SFXManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+    }
+
+    private void Start()
+    {
+        PlayBGM();
+    }
+
+    // ─── Background Music ──────────────────────────────────────
+    public void PlayBGM()
+    {
+        if (bgmSource != null && backgroundMusicClip != null)
+        {
+            bgmSource.clip = backgroundMusicClip;
+            bgmSource.loop = true;
+            if (!bgmSource.isPlaying) bgmSource.Play();
+        }
+    }
+
+    public void StopBGM()
+    {
+        if (bgmSource != null) bgmSource.Stop();
     }
 
     // ─── UI / Simple Interactions ──────────────────────────────
@@ -63,26 +93,39 @@ public class SFXManager : MonoBehaviour
     public void PlayBuy() { PlayOneShotSafe(buySFX); }
     public void PlayDayEnd() { PlayOneShotSafe(dayEndSFX); }
 
-    // ─── Minigames ─────────────────────────────────────────────
-    public void PlayKneading() { PlayOneShotSafe(kneadingSFX); }
-
-    public void PlayRolling() 
+    // ─── Minigames (Long Tracks) ───────────────────────────────
+    public void StartKneading() 
     { 
-        if (rollingSFX == null || oneShotSource == null) return;
-        // Throttle the rolling sound so it doesn't machine-gun if updated every frame
-        if (Time.time > rollSfxTimer)
+        if (kneadingSFX != null && kneadingSource != null) 
         {
-            oneShotSource.PlayOneShot(rollingSFX);
-            rollSfxTimer = Time.time + 0.15f; 
+            if (kneadingSource.clip != kneadingSFX) kneadingSource.clip = kneadingSFX;
+            if (!kneadingSource.isPlaying) kneadingSource.Play();
         }
     }
+    public void StopKneading() { if (kneadingSource != null) kneadingSource.Stop(); }
+
+    public void StartRolling() 
+    { 
+        if (rollingSFX != null && rollingSource != null) 
+        {
+            if (rollingSource.clip != rollingSFX) rollingSource.clip = rollingSFX;
+            if (!rollingSource.isPlaying) rollingSource.Play();
+        }
+    }
+    public void StopRolling() { if (rollingSource != null) rollingSource.Stop(); }
+    
+    // Legacy support to prevent errors if called
+    public void PlayKneading() => StartKneading();
+    public void PlayRolling() => StartRolling();
 
     // ─── Player Movement ───────────────────────────────────────
     public void PlayWalk() 
     { 
-        if (walkSFX != null && footstepSource != null && !footstepSource.isPlaying) 
+        if (walkSFX != null && walkSFX.Length > 0 && footstepSource != null && !footstepSource.isPlaying) 
         {
-            footstepSource.clip = walkSFX;
+            // Pick a random footstep from the collection
+            AudioClip clip = walkSFX[Random.Range(0, walkSFX.Length)];
+            footstepSource.clip = clip;
             footstepSource.Play();
         } 
     }

@@ -89,6 +89,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OpenSaveSlots()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         mainMenuPanel.SetActive(false);
         saveSlotsPanel.SetActive(true);
         UpdateSlotUI();
@@ -96,6 +97,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void SelectSlot(int slot)
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         SaveSystem.SelectedSlot = slot;
         PlayGame();
     }
@@ -120,6 +122,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void BackToMainMenu()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         CloseSettings();
         CloseSaveSlots();
     }
@@ -137,12 +140,14 @@ public class MainMenuManager : MonoBehaviour
 
     public void OpenSettings()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         mainMenuPanel.SetActive(false);
         settingsPanel.SetActive(true);
     }
 
     public void CloseSettings()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         settingsPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
     }
@@ -157,6 +162,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OpenGemShop()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         if (gemShopPanel != null)
         {
             mainMenuPanel.SetActive(false);
@@ -167,6 +173,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void CloseGemShop()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         if (gemShopPanel != null)
         {
             gemShopPanel.SetActive(false);

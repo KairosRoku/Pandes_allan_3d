@@ -26,6 +26,11 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        ApplyAllVolumes();
+    }
+
     public void SetMasterVolume(float value)
     {
         masterVolume = value;

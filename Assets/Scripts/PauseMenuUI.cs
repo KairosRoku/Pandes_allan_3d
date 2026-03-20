@@ -57,6 +57,7 @@ public class PauseMenuUI : MonoBehaviour
 
     public void Resume()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (gemShopPanel != null) gemShopPanel.SetActive(false);
@@ -89,6 +90,7 @@ public class PauseMenuUI : MonoBehaviour
 
     public void Pause()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         pauseMenuPanel.SetActive(true);
         Time.timeScale = 0f;
         isPaused = true;
@@ -99,12 +101,14 @@ public class PauseMenuUI : MonoBehaviour
 
     public void OpenSettings()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         pauseMenuPanel.SetActive(false);
         settingsPanel.SetActive(true);
     }
 
     public void CloseSettings()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         settingsPanel.SetActive(false);
         pauseMenuPanel.SetActive(true);
     }
@@ -129,6 +133,7 @@ public class PauseMenuUI : MonoBehaviour
 
     public void OpenGemShopPanel()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         if (gemShopPanel != null)
         {
             pauseMenuPanel.SetActive(false);
@@ -143,6 +148,7 @@ public class PauseMenuUI : MonoBehaviour
 
     public void CloseGemShopPanel()
     {
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
         if (gemShopPanel != null)
         {
             gemShopPanel.SetActive(false);

@@ -21,14 +21,13 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Debug")]
-    [Tooltip("If checked, pressing F11 skips to Service Phase and F12 gives instant dough.")]
     public bool allowDebugKeys = false;
 
     [Header("Time Settings")]
-    public float realSecondsPerGameHour = 60f; // 1 game hour = 60 real seconds by default
-    public int startHour = 3; // 3 AM
-    public int endHour = 12;  // 12 PM
-    public int serviceStartHour = 5; // Customers start at 5 AM
+    public float realSecondsPerGameHour = 60f;
+    public int startHour = 3;
+    public int endHour = 12;
+    public int serviceStartHour = 5;
 
     private float gameTimeTimer = 0f;
     public bool isDayActive = false;
@@ -37,7 +36,7 @@ public class GameManager : MonoBehaviour
     public int totalMoney = 100;
     public int moneyEarnedToday = 0;
     public int currentDay = 1;
-    public int gemsConvertedToday = 0; // for end-of-day stats
+    public int gemsConvertedToday = 0;
 
     [Header("Upgrades")]
     public int doughMakingUpgradeLevel = 0;
@@ -75,7 +74,6 @@ public class GameManager : MonoBehaviour
     [Header("End Day UI")]
     public GameObject dayEndWindow;
     public TextMeshProUGUI statsText;
-    // "Watch Ad" button object inside the dayEndWindow (optional)
     public GameObject watchAdButtonObj;
 
     [Header("HUD")]
@@ -84,10 +82,10 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI clockText;
     public TextMeshProUGUI moneyText;
     public TextMeshProUGUI dayText;
-    public TextMeshProUGUI gemText; // Gem HUD display
+    public TextMeshProUGUI gemText;
 
     [Header("VFX")]
-    public MoneyVFX moneyVFX; // Assign in Inspector — place near the CustomerWindow
+    public MoneyVFX moneyVFX;
 
     [Header("Shop Settings")]
     public int flourRestockCost = 10;
@@ -99,7 +97,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI shopFlourAmountText;
     public TextMeshProUGUI shopSugarAmountText;
     public TextMeshProUGUI shopWaterAmountText;
-    public TextMeshProUGUI shopMoneyText; // Added to show money in the shop menu
+    public TextMeshProUGUI shopMoneyText;
 
     [Header("Upgrade UI Texts")]
     public TextMeshProUGUI doughUpgradeText;
@@ -138,41 +136,32 @@ public class GameManager : MonoBehaviour
 
     public void StartDay()
     {
-        if (currentDay == 1 && gameTimeTimer == 0) // First time starting
+        if (currentDay == 1 && gameTimeTimer == 0)
         {
             LoadGame();
         }
 
-        // Apply ad buff and clear lockout for the new day
         if (AdManager.Instance != null)
             AdManager.Instance.StartNewDay();
 
         currentEvent = nextDayEvent;
-
         gameTimeTimer = 0f;
         moneyEarnedToday = 0;
         gemsConvertedToday = 0;
         dayEndWindow.SetActive(false);
-
         hasSpawnedVloggerToday = false;
 
         ApplyEventEffects();
-
         UpdateHUD();
 
         if (currentEvent == DailyEvent.Illness)
         {
-            totalMoney -= 100; // Medicine cost only, day no longer skipped
-            Debug.Log("[EVENT] Illness! Movement speed reduced by 25%. Paid $100 for medicine.");
-        }
-        else if (currentEvent == DailyEvent.Bagyo)
-        {
-            Debug.Log("[EVENT] Bagyo! Customers will be extremely rare today.");
+            totalMoney -= 100;
         }
 
         if (startOfDayWindow != null && currentEvent != DailyEvent.None)
         {
-            isDayActive = false; // Pause day until OK is clicked
+            isDayActive = false;
             startOfDayWindow.SetActive(true);
             if (startOfDayEventText != null)
                 startOfDayEventText.text = $"TODAY:\n{GetEventDescription(currentEvent)}";
@@ -189,7 +178,6 @@ public class GameManager : MonoBehaviour
     public void CloseStartOfDayWindow()
     {
         if (startOfDayWindow != null) startOfDayWindow.SetActive(false);
-        
         isDayActive = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -197,64 +185,48 @@ public class GameManager : MonoBehaviour
 
     private DailyEvent RollForEvent()
     {
-        // Don't have an event for Day 1
         if (currentDay == 1) return DailyEvent.None;
 
-        DailyEvent randomEvent = DailyEvent.None;
-
-        int random100 = Random.Range(1, 101); // 1 to 100
+        int random100 = Random.Range(1, 101);
 
         if (random100 <= 1 && illnessCount < 1) 
         {
-             randomEvent = DailyEvent.Illness;
              illnessCount++;
+             return DailyEvent.Illness;
         }
-        else if (random100 <= 2 && infestationCount < 1)
+        if (random100 <= 2 && infestationCount < 1)
         {
-             randomEvent = DailyEvent.Infestation;
              infestationCount++;
+             return DailyEvent.Infestation;
         }
-        else if (random100 <= 3 && bagyoCount < 2)
+        if (random100 <= 3 && bagyoCount < 2)
         {
-             randomEvent = DailyEvent.Bagyo;
              bagyoCount++;
+             return DailyEvent.Bagyo;
         }
-        else if (random100 <= 5)
+        if (random100 <= 5) return DailyEvent.Oversleep;
+        if (random100 <= 7) return DailyEvent.Holiday;
+        if (random100 <= 12) return DailyEvent.SchoolEvent;
+        if (random100 <= 14 && vloggerCount < 2) 
         {
-             randomEvent = DailyEvent.Oversleep;
-        }
-        else if (random100 <= 7)
-        {
-             randomEvent = DailyEvent.Holiday;
-        }
-        else if (random100 <= 12)
-        {
-             randomEvent = DailyEvent.SchoolEvent;
-        }
-        else if (random100 <= 14 && vloggerCount < 2) 
-        {
-             randomEvent = DailyEvent.Vlogger;
              vloggerCount++;
+             return DailyEvent.Vlogger;
         }
         
-        return randomEvent;
+        return DailyEvent.None;
     }
 
     private void ApplyEventEffects()
     {
         if (currentEvent == DailyEvent.Infestation)
         {
-            Dispenser[] dispensers = FindObjectsOfType<Dispenser>();
-            foreach(var d in dispensers) { d.currentAmount /= 2; d.Restock(0); }
-            IngredientRack[] racks = FindObjectsOfType<IngredientRack>();
-            foreach(var r in racks) { r.currentAmount /= 2; r.Restock(0); }
-            Debug.Log("[EVENT] Infestation! Lost half ingredients");
+            foreach(var d in FindObjectsOfType<Dispenser>()) { d.currentAmount /= 2; d.Restock(0); }
+            foreach(var r in FindObjectsOfType<IngredientRack>()) { r.currentAmount /= 2; r.Restock(0); }
         }
         
         if (currentEvent == DailyEvent.Oversleep)
         {
-            gameTimeTimer = realSecondsPerGameHour * 1.5f; // Jump 1.5 hours ahead
-            Debug.Log("[EVENT] Overslept! Preparation time shortened.");
+            gameTimeTimer = realSecondsPerGameHour * 1.5f;
         }
     }
 
@@ -264,32 +236,22 @@ public class GameManager : MonoBehaviour
         {
             gameTimeTimer += Time.deltaTime;
             
-            // Debug / Testing Skips
             if (allowDebugKeys && UnityEngine.InputSystem.Keyboard.current != null)
             {
                 if (UnityEngine.InputSystem.Keyboard.current.f11Key.wasPressedThisFrame)
                 {
                     float skipTime = (serviceStartHour - startHour) * realSecondsPerGameHour;
-                    if (gameTimeTimer < skipTime)
-                    {
-                        gameTimeTimer = skipTime;
-                        Debug.Log("[DEBUG] F11 Pressed: Skipped prep phase to 5 AM!");
-                    }
+                    if (gameTimeTimer < skipTime) gameTimeTimer = skipTime;
                 }
                 if (UnityEngine.InputSystem.Keyboard.current.f12Key.wasPressedThisFrame)
                 {
-                    if (AdManager.Instance != null)
-                    {
-                        Debug.Log("[DEBUG] F12 Pressed: Applying Instant Dough!");
-                        AdManager.Instance.ApplyInstantDoughBuff();
-                    }
+                    if (AdManager.Instance != null) AdManager.Instance.ApplyInstantDoughBuff();
                 }
             }
 
             UpdateHUD();
 
-            float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
-            if (startHour + totalHoursPassed >= endHour)
+            if (startHour + (gameTimeTimer / realSecondsPerGameHour) >= endHour)
             {
                 EndDay();
             }
@@ -300,60 +262,36 @@ public class GameManager : MonoBehaviour
     {
         float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
         float currentDisplayHour = startHour + totalHoursPassed;
-        
         int hours = Mathf.FloorToInt(currentDisplayHour);
         int minutes = Mathf.FloorToInt((currentDisplayHour - hours) * 60f);
 
-        if (clockText != null)
-            clockText.text = $"{hours:D2}:{minutes:D2} AM";
+        if (clockText != null) clockText.text = $"{hours:D2}:{minutes:D2} AM";
+        if (moneyText != null) moneyText.text = $"${totalMoney}";
+        if (dayText != null) dayText.text = $"Day {currentDay}";
+        if (gemText != null) gemText.text = $"gem {(GemManager.Instance != null ? GemManager.Instance.totalGems : 0)}";
 
-        if (moneyText != null)
-            moneyText.text = $"${totalMoney}";
-
-        if (dayText != null)
-            dayText.text = $"Day {currentDay}";
-
-        // Gem HUD
-        if (gemText != null)
-            gemText.text = $"💎 {(GemManager.Instance != null ? GemManager.Instance.totalGems : 0)}";
-
-        // Show prep phase indicator only before service time
         if (prepPhaseIndicator != null)
             prepPhaseIndicator.SetActive(!IsServiceTime());
 
         if (eventHUDText != null)
         {
             string eventStr = "";
-            if (currentEvent != DailyEvent.None)
-                eventStr = $"Event: {currentEvent}";
-            
-            if (viralDaysRemaining > 0)
-                eventStr += "\n[VIRAL EFFECT]";
-            else if (viralFailedDaysRemaining > 0)
-                eventStr += "\n[FLOPPED EFFECT]";
+            if (currentEvent != DailyEvent.None) eventStr = $"Event: {currentEvent}";
+            if (viralDaysRemaining > 0) eventStr += "\n[VIRAL EFFECT]";
+            else if (viralFailedDaysRemaining > 0) eventStr += "\n[FLOPPED EFFECT]";
 
-            // Show active ad buff if any
             if (AdManager.Instance != null)
             {
                 string buffLabel = AdManager.Instance.GetActiveBuffLabel();
-                if (!string.IsNullOrEmpty(buffLabel))
-                    eventStr += $"\n{buffLabel}";
+                if (!string.IsNullOrEmpty(buffLabel)) eventStr += $"\n{buffLabel}";
             }
-                
             eventHUDText.text = eventStr;
         }
     }
 
-    public bool IsServiceTime()
-    {
-        return GetCurrentHour() >= serviceStartHour;
-    }
+    public bool IsServiceTime() => GetCurrentHour() >= serviceStartHour;
 
-    public float GetCurrentHour()
-    {
-        float totalHoursPassed = gameTimeTimer / realSecondsPerGameHour;
-        return startHour + totalHoursPassed;
-    }
+    public float GetCurrentHour() => startHour + (gameTimeTimer / realSecondsPerGameHour);
 
     public void AddMoney(int amount)
     {
@@ -361,80 +299,53 @@ public class GameManager : MonoBehaviour
         moneyEarnedToday += amount;
         UpdateHUD();
 
-        // Trigger coin burst VFX at the selling point
         if (moneyVFX != null) moneyVFX.PlayBurst();
 
-        // Wiggle the money text to provide juicy feedback
         if (moneyText != null)
         {
             var rt = moneyText.GetComponent<RectTransform>();
             if (rt != null)
             {
-                // Stop any existing wiggle before starting a new one
                 StopCoroutine("WiggleMoneyRoutine");
                 StartCoroutine(WiggleMoneyRoutine(rt));
             }
         }
     }
 
-    private IEnumerator WiggleMoneyRoutine(RectTransform rt)
-    {
-        yield return FlavorEffects.Wiggle(rt);
-    }
+    private IEnumerator WiggleMoneyRoutine(RectTransform rt) => FlavorEffects.Wiggle(rt);
 
     public void EndDay()
     {
         isDayActive = false;
         dayEndWindow.SetActive(true);
-        
         if (SFXManager.Instance != null) SFXManager.Instance.PlayDayEnd();
 
-        // Unlock cursor for UI
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
         if (currentEvent != DailyEvent.Illness && currentEvent != DailyEvent.Bagyo)
-        {
-            totalMoney -= dailyCost; // Normal daily cost
-        }
+            totalMoney -= dailyCost;
 
         if (viralDaysRemaining > 0) viralDaysRemaining--;
         if (viralFailedDaysRemaining > 0) viralFailedDaysRemaining--;
 
-        // Exchange gems → money (1:10)
         gemsConvertedToday = 0;
         if (GemManager.Instance != null && GemManager.Instance.totalGems > 0)
         {
             gemsConvertedToday = GemManager.Instance.totalGems;
-            int gemMoney = GemManager.Instance.ExchangeGemsForMoney();
-            totalMoney += gemMoney;
+            totalMoney += GemManager.Instance.ExchangeGemsForMoney();
         }
 
         if (statsText != null)
         {
-            string gemLine = gemsConvertedToday > 0
-                ? $"Gems Exchanged: 💎{gemsConvertedToday} → +${gemsConvertedToday * 10}\n"
-                : "";
-            statsText.text = $"DAY {currentDay} COMPLETE\n\n" +
-                             $"Money Earned: ${moneyEarnedToday}\n" +
-                             $"Daily Costs: ${dailyCost}\n" +
-                             gemLine +
-                             $"Total Balance: ${totalMoney}";
-
-            // Wave the money text for a satisfying end-of-day payoff
+            string gemLine = gemsConvertedToday > 0 ? $"Gems Exchanged: gem {gemsConvertedToday} → +${gemsConvertedToday * 10}\n" : "";
+            statsText.text = $"DAY {currentDay} COMPLETE\n\nMoney Earned: ${moneyEarnedToday}\nDaily Costs: ${dailyCost}\n{gemLine}Total Balance: ${totalMoney}";
             StartCoroutine(FlavorEffects.WaveText(statsText, duration: 2.0f, amplitude: 8f, frequency: 2.5f));
         }
 
         nextDayEvent = RollForEvent();
-
-        if (endOfDayNewsText != null)
-        {
-            endOfDayNewsText.text = $"NEWS FORECAST:\n{GetEventForecast(nextDayEvent)}";
-        }
-
-        // Show the Ad offer button if AdManager is present
-        if (watchAdButtonObj != null)
-            watchAdButtonObj.SetActive(AdManager.Instance != null);
+        if (endOfDayNewsText != null) endOfDayNewsText.text = $"NEWS FORECAST:\n{GetEventForecast(nextDayEvent)}";
+        if (watchAdButtonObj != null) watchAdButtonObj.SetActive(AdManager.Instance != null);
 
         SaveGame();
         UpdateShopAmountsUI();
@@ -451,11 +362,7 @@ public class GameManager : MonoBehaviour
         data.burnTimeUpgradeLevel = burnTimeUpgradeLevel;
         data.totalGems = GemManager.Instance != null ? GemManager.Instance.totalGems : 0;
 
-        if (WorldStateSaver.Instance != null)
-        {
-            WorldStateSaver.Instance.CaptureWorldState(data);
-        }
-
+        if (WorldStateSaver.Instance != null) WorldStateSaver.Instance.CaptureWorldState(data);
         SaveSystem.Save(SaveSystem.SelectedSlot, data);
     }
 
@@ -468,12 +375,7 @@ public class GameManager : MonoBehaviour
         bakingUpgradeLevel = data.bakingUpgradeLevel;
         burnTimeUpgradeLevel = data.burnTimeUpgradeLevel;
 
-        if (WorldStateSaver.Instance != null)
-        {
-            WorldStateSaver.Instance.RestoreWorldState(data);
-        }
-
-        // Load gems
+        if (WorldStateSaver.Instance != null) WorldStateSaver.Instance.RestoreWorldState(data);
         if (GemManager.Instance != null)
         {
             GemManager.Instance.totalGems = data.totalGems;
@@ -482,66 +384,43 @@ public class GameManager : MonoBehaviour
 
         UpdateHUD();
         UpdateUpgradesUI();
-        Debug.Log($"[LOAD] Slot {SaveSystem.SelectedSlot} Loaded. Day: {currentDay}");
     }
 
-    // ─── Gem Shop helpers (can be called from UI buttons) ────────────
-
-    public void OpenGemShop()
-    {
-        if (GemManager.Instance != null)
-            GemManager.Instance.OpenGemShop();
-    }
-
-    public void CloseGemShop()
-    {
-        if (GemManager.Instance != null)
-            GemManager.Instance.CloseGemShop();
-    }
-
-    // ─── Ad helpers ──────────────────────────────────────────────────
-
-    public void ShowAdOffer()
-    {
-        if (AdManager.Instance != null)
-            AdManager.Instance.ShowAdOffer();
-    }
+    public void OpenGemShop() { if (GemManager.Instance != null) GemManager.Instance.OpenGemShop(); }
+    public void CloseGemShop() { if (GemManager.Instance != null) GemManager.Instance.CloseGemShop(); }
+    public void ShowAdOffer() { if (AdManager.Instance != null) AdManager.Instance.ShowAdOffer(); }
 
     private string GetEventDescription(DailyEvent e)
     {
-        switch (e)
+        return e switch
         {
-            case DailyEvent.Oversleep: return "You overslept! Preparation time is shortened.";
-            case DailyEvent.Bagyo: return "Typhoon! Customers will be extremely rare today.";
-            case DailyEvent.Infestation: return "Pest Infestation! Half of your ingredients were ruined.";
-            case DailyEvent.Vlogger: return "A famous vlogger might visit today. Serve them well!";
-            case DailyEvent.Holiday: return "It's a Holiday! Fewer customers, but they buy in bulk.";
-            case DailyEvent.SchoolEvent: return "School Event nearby! Many students, but small orders.";
-            case DailyEvent.Illness: return "You got sick! Movement speed is reduced by 25%. Paid $100 for medicine.";
-            default: return "Just a regular day.";
-        }
+            DailyEvent.Oversleep => "You overslept! Preparation time is shortened.",
+            DailyEvent.Bagyo => "Typhoon! Customers will be extremely rare today.",
+            DailyEvent.Infestation => "Pest Infestation! Half of your ingredients were ruined.",
+            DailyEvent.Vlogger => "A famous vlogger might visit today. Serve them well!",
+            DailyEvent.Holiday => "It's a Holiday! Fewer customers, but they buy in bulk.",
+            DailyEvent.SchoolEvent => "School Event nearby! Many students, but small orders.",
+            DailyEvent.Illness => "You got sick! Movement speed is reduced by 25%. Paid $100 for medicine.",
+            _ => "Just a regular day."
+        };
     }
 
     private string GetEventForecast(DailyEvent e)
     {
-        switch (e)
+        return e switch
         {
-            case DailyEvent.Oversleep: return "Citizens urged to set their alarms as strange fatigue sweeps the city.";
-            case DailyEvent.Bagyo: return "Heavy rains and typhoon expected tomorrow. Stay safe!";
-            case DailyEvent.Infestation: return "Health inspectors issue pest warning in the local area.";
-            case DailyEvent.Vlogger: return "Rumors say a famous food vlogger is dropping by town!";
-            case DailyEvent.Holiday: return "A local holiday is coming up tomorrow!";
-            case DailyEvent.SchoolEvent: return "Local schools are preparing for a massive event.";
-            case DailyEvent.Illness: return "Flu season is here. Drink water and rest up!";
-            default: return "Normal weather and a regular day expected tomorrow.";
-        }
+            DailyEvent.Oversleep => "Citizens urged to set their alarms as strange fatigue sweeps the city.",
+            DailyEvent.Bagyo => "Heavy rains and typhoon expected tomorrow. Stay safe!",
+            DailyEvent.Infestation => "Health inspectors issue pest warning in the local area.",
+            DailyEvent.Vlogger => "Rumors say a famous food vlogger is dropping by town!",
+            DailyEvent.Holiday => "A local holiday is coming up tomorrow!",
+            DailyEvent.SchoolEvent => "Local schools are preparing for a massive event.",
+            DailyEvent.Illness => "Flu season is here. Drink water and rest up!",
+            _ => "Normal weather and a regular day expected tomorrow."
+        };
     }
 
-    public void NextDay()
-    {
-        currentDay++;
-        StartDay();
-    }
+    public void NextDay() { currentDay++; StartDay(); }
 
     public void BuyItem(ItemType type, int cost)
     {
@@ -550,24 +429,12 @@ public class GameManager : MonoBehaviour
             totalMoney -= cost;
             UpdateHUD();
             if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
-            Debug.Log("Bought " + type + " for " + cost);
         }
     }
 
-    public void BuyFlour()
-    {
-        TryRestock(ItemType.Flour, flourRestockCost);
-    }
-
-    public void BuySugar()
-    {
-        TryRestock(ItemType.Sugar, sugarRestockCost);
-    }
-
-    public void BuyWater()
-    {
-        TryRestock(ItemType.Water, waterRestockCost);
-    }
+    public void BuyFlour() => TryRestock(ItemType.Flour, flourRestockCost);
+    public void BuySugar() => TryRestock(ItemType.Sugar, sugarRestockCost);
+    public void BuyWater() => TryRestock(ItemType.Water, waterRestockCost);
 
     private void TryRestock(ItemType type, int cost)
     {
@@ -576,27 +443,9 @@ public class GameManager : MonoBehaviour
             totalMoney -= cost;
             UpdateHUD();
             if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
-            
-            // Refill all dispensers for this type
-            Dispenser[] dispensers = FindObjectsOfType<Dispenser>();
-            foreach (var d in dispensers)
-            {
-                if (d.itemType == type) d.Restock(restockAmountPerPurchase);
-            }
-
-            // Refill all ingredient racks for this type
-            IngredientRack[] racks = FindObjectsOfType<IngredientRack>();
-            foreach (var r in racks)
-            {
-                if (r.itemType == type) r.Restock(restockAmountPerPurchase);
-            }
-
-            Debug.Log($"[SHOP] Bought {restockAmountPerPurchase} {type} for ${cost}.");
+            foreach (var d in FindObjectsOfType<Dispenser>()) if (d.itemType == type) d.Restock(restockAmountPerPurchase);
+            foreach (var r in FindObjectsOfType<IngredientRack>()) if (r.itemType == type) r.Restock(restockAmountPerPurchase);
             UpdateShopAmountsUI();
-        }
-        else
-        {
-            Debug.Log($"[SHOP] Not enough money to buy {type}!");
         }
     }
 
@@ -609,12 +458,8 @@ public class GameManager : MonoBehaviour
             {
                 totalMoney -= cost;
                 doughMakingUpgradeLevel++;
-                UpdateHUD();
-                UpdateShopAmountsUI();
-                UpdateUpgradesUI();
-                SaveGame();
+                UpdateHUD(); UpdateShopAmountsUI(); UpdateUpgradesUI(); SaveGame();
                 if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
-                Debug.Log($"[SHOP] Dough Making Upgraded to level {doughMakingUpgradeLevel}");
             }
         }
     }
@@ -628,12 +473,8 @@ public class GameManager : MonoBehaviour
             {
                 totalMoney -= cost;
                 bakingUpgradeLevel++;
-                UpdateHUD();
-                UpdateShopAmountsUI();
-                UpdateUpgradesUI();
-                SaveGame();
+                UpdateHUD(); UpdateShopAmountsUI(); UpdateUpgradesUI(); SaveGame();
                 if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
-                Debug.Log($"[SHOP] Baking Upgraded to level {bakingUpgradeLevel}");
             }
         }
     }
@@ -647,73 +488,32 @@ public class GameManager : MonoBehaviour
             {
                 totalMoney -= cost;
                 burnTimeUpgradeLevel++;
-                UpdateHUD();
-                UpdateShopAmountsUI();
-                UpdateUpgradesUI();
-                SaveGame();
+                UpdateHUD(); UpdateShopAmountsUI(); UpdateUpgradesUI(); SaveGame();
                 if (SFXManager.Instance != null) SFXManager.Instance.PlayBuy();
-                Debug.Log($"[SHOP] Burn Time Upgraded to level {burnTimeUpgradeLevel}");
             }
         }
     }
 
     public void UpdateShopAmountsUI()
     {
-        if (shopMoneyText != null)
-            shopMoneyText.text = $"Balance: ${totalMoney}";
-
-        if (shopFlourAmountText != null)
-            shopFlourAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Flour)}";
-            
-        if (shopSugarAmountText != null)
-            shopSugarAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Sugar)}";
-            
-        if (shopWaterAmountText != null)
-            shopWaterAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Water)}";
+        if (shopMoneyText != null) shopMoneyText.text = $"Balance: ${totalMoney}";
+        if (shopFlourAmountText != null) shopFlourAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Flour)}";
+        if (shopSugarAmountText != null) shopSugarAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Sugar)}";
+        if (shopWaterAmountText != null) shopWaterAmountText.text = $"Owned: {GetTotalIngredientAmount(ItemType.Water)}";
     }
 
     public void UpdateUpgradesUI()
     {
-        if (doughUpgradeText != null)
-        {
-            if (doughMakingUpgradeLevel < doughUpgradeCosts.Length)
-                doughUpgradeText.text = $"Faster Dough Making\nLvl {doughMakingUpgradeLevel} -> {doughMakingUpgradeLevel + 1}\nCost: ${doughUpgradeCosts[doughMakingUpgradeLevel]}";
-            else
-                doughUpgradeText.text = "Faster Dough Making\nMAX LEVEL";
-        }
-
-        if (bakingUpgradeText != null)
-        {
-            if (bakingUpgradeLevel < bakingUpgradeCosts.Length)
-                bakingUpgradeText.text = $"Faster Baking\nLvl {bakingUpgradeLevel} -> {bakingUpgradeLevel + 1}\nCost: ${bakingUpgradeCosts[bakingUpgradeLevel]}";
-            else
-                bakingUpgradeText.text = "Faster Baking\nMAX LEVEL";
-        }
-
-        if (burnTimeUpgradeText != null)
-        {
-            if (burnTimeUpgradeLevel < burnUpgradeCosts.Length)
-                burnTimeUpgradeText.text = $"Longer Burn Time\nLvl {burnTimeUpgradeLevel} -> {burnTimeUpgradeLevel + 1}\nCost: ${burnUpgradeCosts[burnTimeUpgradeLevel]}";
-            else
-                burnTimeUpgradeText.text = "Longer Burn Time\nMAX LEVEL";
-        }
+        if (doughUpgradeText != null) doughUpgradeText.text = (doughMakingUpgradeLevel < doughUpgradeCosts.Length) ? $"Faster Dough Making\nLvl {doughMakingUpgradeLevel} -> {doughMakingUpgradeLevel + 1}\nCost: ${doughUpgradeCosts[doughMakingUpgradeLevel]}" : "Faster Dough Making\nMAX LEVEL";
+        if (bakingUpgradeText != null) bakingUpgradeText.text = (bakingUpgradeLevel < bakingUpgradeCosts.Length) ? $"Faster Baking\nLvl {bakingUpgradeLevel} -> {bakingUpgradeLevel + 1}\nCost: ${bakingUpgradeCosts[bakingUpgradeLevel]}" : "Faster Baking\nMAX LEVEL";
+        if (burnTimeUpgradeText != null) burnTimeUpgradeText.text = (burnTimeUpgradeLevel < burnUpgradeCosts.Length) ? $"Longer Burn Time\nLvl {burnTimeUpgradeLevel} -> {burnTimeUpgradeLevel + 1}\nCost: ${burnUpgradeCosts[burnTimeUpgradeLevel]}" : "Longer Burn Time\nMAX LEVEL";
     }
 
     private int GetTotalIngredientAmount(ItemType type)
     {
         int total = 0;
-        Dispenser[] dispensers = FindObjectsOfType<Dispenser>();
-        foreach (var d in dispensers)
-        {
-            if (d.itemType == type) total += d.currentAmount;
-        }
-
-        IngredientRack[] racks = FindObjectsOfType<IngredientRack>();
-        foreach (var r in racks)
-        {
-            if (r.itemType == type) total += r.currentAmount;
-        }
-
+        foreach (var d in FindObjectsOfType<Dispenser>()) if (d.itemType == type) total += d.currentAmount;
+        foreach (var r in FindObjectsOfType<IngredientRack>()) if (r.itemType == type) total += r.currentAmount;
         return total;
     }
 }

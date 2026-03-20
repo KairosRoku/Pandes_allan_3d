@@ -10,6 +10,12 @@ public class ShapingMinigameUI : MonoBehaviour
     public GameObject windowRoot;
     public Image progressBar;
     public RectTransform circularArea; // Suggestive area to rotate around
+    
+    [Header("Animation")]
+    public RectTransform handImage;
+    public RectTransform doughImage;
+    public RectTransform doughAttachPoint; // An empty child inside handImage where dough sits
+    public float handRadius = 150f;
 
     [Header("Settings")]
     public float shapingGoal = 100f;
@@ -20,6 +26,7 @@ public class ShapingMinigameUI : MonoBehaviour
     private float lastAngle;
     private bool isMouseDown = false;
     private Vector2 center;
+    private Vector3 originalDoughScale = Vector3.one;
 
     private System.Action onCompleteCallback;
     private PlayerController playerRef;
@@ -30,6 +37,11 @@ public class ShapingMinigameUI : MonoBehaviour
         else Destroy(gameObject);
 
         windowRoot.SetActive(false);
+    }
+
+    private void OnDisable()
+    {
+        if (SFXManager.Instance != null) SFXManager.Instance.StopRolling();
     }
 
     public void StartMinigame(PlayerController player, System.Action onComplete)
@@ -58,12 +70,19 @@ public class ShapingMinigameUI : MonoBehaviour
         else
             center = new Vector2(Screen.width / 2f, Screen.height / 2f);
 
+        // Store original scale if we haven't yet
+        if (doughImage != null) originalDoughScale = doughImage.localScale;
+
         UpdateUI();
     }
 
     private void Update()
     {
-        if (!isMinigameActive) return;
+        if (!isMinigameActive || windowRoot == null || !windowRoot.activeSelf) 
+        {
+            if (SFXManager.Instance != null) SFXManager.Instance.StopRolling();
+            return;
+        }
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -81,8 +100,50 @@ public class ShapingMinigameUI : MonoBehaviour
             float currentAngle = GetMouseAngle();
             float delta = Mathf.Abs(Mathf.DeltaAngle(lastAngle, currentAngle));
             
+            // SFX: Play if moving significantly, else pause
+            if (SFXManager.Instance != null)
+            {
+                if (delta > 0.1f) SFXManager.Instance.StartRolling();
+                else SFXManager.Instance.StopRolling();
+            }
+
             AddProgress(delta * progressPerDegree);
             lastAngle = currentAngle;
+
+            // --- ANIMATION LOGIC ---
+            float rad = currentAngle * Mathf.Deg2Rad;
+
+            if (handImage != null)
+            {
+                // Position hand in a circle around the dough
+                Vector3 orbitPos = new Vector3(Mathf.Cos(rad) * handRadius, Mathf.Sin(rad) * handRadius, 0);
+                handImage.localPosition = orbitPos;
+                
+                // The hand does NOT rotate now, it stays upright as it orbits
+                handImage.localRotation = Quaternion.identity; 
+            }
+
+            if (doughImage != null)
+            {
+                // Snap dough to the attach point on the hand if available
+                if (doughAttachPoint != null)
+                {
+                    doughImage.position = doughAttachPoint.position;
+                }
+
+                // Dough only spins now, stays at its original editor size
+                doughImage.localScale = originalDoughScale;
+                
+                // Extremely subtle rotation for dough image to look alive
+                doughImage.Rotate(Vector3.forward * (delta * 0.5f));
+            }
+        }
+        else
+        {
+            if (SFXManager.Instance != null) SFXManager.Instance.StopRolling();
+            
+            // Return to IDLE
+            if (handImage != null) handImage.localScale = Vector3.Lerp(handImage.localScale, Vector3.one, Time.unscaledDeltaTime * 5f);
         }
     }
 
@@ -96,8 +157,6 @@ public class ShapingMinigameUI : MonoBehaviour
     {
         currentProgress += amount;
         UpdateUI();
-
-        if (SFXManager.Instance != null && amount > 0.1f) SFXManager.Instance.PlayRolling();
 
         if (currentProgress >= shapingGoal)
         {
@@ -115,6 +174,8 @@ public class ShapingMinigameUI : MonoBehaviour
     {
         isMinigameActive = false;
         windowRoot.SetActive(false);
+
+        if (SFXManager.Instance != null) SFXManager.Instance.StopRolling();
 
         // Resume player and time
         if (playerRef != null)
