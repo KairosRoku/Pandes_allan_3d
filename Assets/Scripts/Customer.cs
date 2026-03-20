@@ -11,8 +11,18 @@ public class Customer : MonoBehaviour
     [Header("UI")]
     public GameObject timerCanvas;
     public Image timerFillImage;
+    public TMPro.TextMeshProUGUI orderText;
 
     [HideInInspector] public bool isVlogger = false;
+
+    [Header("Animation & Movement")]
+    public float walkSpeed = 3f;
+    public Animator animator;
+    
+    private Vector3 targetPos;
+    private Quaternion targetRot;
+    private bool isMoving = false;
+    private bool isLeaving = false;
 
     private CustomerWindow manager;
 
@@ -23,6 +33,7 @@ public class Customer : MonoBehaviour
         currentWaitTimer = maxWaitTime;
         
         if (timerCanvas != null) timerCanvas.SetActive(false);
+        if (orderText != null) orderText.text = req.ToString();
     }
 
     public void StartServing()
@@ -33,7 +44,33 @@ public class Customer : MonoBehaviour
 
     private void Update()
     {
-        if (isBeingServed && GameManager.Instance.isDayActive)
+        if (isMoving)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, walkSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, 400f * Time.deltaTime);
+
+            if (animator != null) animator.SetBool("IsWalking", true);
+
+            if (Vector3.Distance(transform.position, targetPos) < 0.05f)
+            {
+                transform.position = targetPos;
+                transform.rotation = targetRot;
+                isMoving = false;
+                
+                if (animator != null) animator.SetBool("IsWalking", false);
+
+                if (isLeaving)
+                {
+                    Destroy(gameObject);
+                }
+            }
+        }
+        else
+        {
+            if (animator != null) animator.SetBool("IsWalking", false);
+        }
+
+        if (isBeingServed && GameManager.Instance.isDayActive && !isLeaving)
         {
             currentWaitTimer -= Time.deltaTime;
             
@@ -66,5 +103,30 @@ public class Customer : MonoBehaviour
             Debug.Log("[EVENT] Vlogger satisfied! Viral effect started.");
         }
         manager.OnCustomerLeft(this, true);
+    }
+
+    public void MoveToTarget(Vector3 pos, Quaternion rot)
+    {
+        targetPos = pos;
+        targetRot = rot;
+        isMoving = true;
+    }
+
+    public void WalkAway(Vector3 exitPos)
+    {
+        if (timerCanvas != null) timerCanvas.SetActive(false);
+        if (orderText != null) orderText.gameObject.SetActive(false);
+        isBeingServed = false;
+        
+        targetPos = exitPos;
+        
+        // Rotate to look at the exit path
+        Vector3 dir = (exitPos - transform.position);
+        dir.y = 0; // maintain level
+        if (dir.sqrMagnitude > 0.01f) 
+            targetRot = Quaternion.LookRotation(dir.normalized);
+
+        isMoving = true;
+        isLeaving = true;
     }
 }

@@ -8,6 +8,9 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 10f;
     public float rotationSpeed = 20f;
 
+    [Header("Animation")]
+    public Animator animator;
+
     [Header("Interaction")]
     public float interactionDistance = 2f;
     public Transform holdPoint;
@@ -40,6 +43,14 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // Enforce the Animator accurately reflects if the player is holding an item. 
+        // This acts as a robust safety net for when the game loads an item in the first frame 
+        // before the Animator had time to fully boot up!
+        if (animator != null)
+        {
+            animator.SetBool("IsHolding", IsHoldingItem());
+        }
+
         if (isDashing || PauseMenuUI.isPaused) return;
 
         HandleInput();
@@ -81,6 +92,7 @@ public class PlayerController : MonoBehaviour
         lastDashTime = Time.time;
         
         if (SFXManager.Instance != null) SFXManager.Instance.PlayDash();
+        if (animator != null) animator.SetTrigger("Dash");
         
         Vector3 dashDir = transform.forward;
         if (dashDir == Vector3.zero) dashDir = Vector3.forward; // Fallback
@@ -127,6 +139,7 @@ public class PlayerController : MonoBehaviour
         if (move.magnitude > 0.1f)
         {
             if (SFXManager.Instance != null && !isDashing) SFXManager.Instance.PlayWalk();
+            if (animator != null) animator.SetBool("IsWalking", true);
 
             float effectiveSpeed = moveSpeed;
             if (GameManager.Instance != null && GameManager.Instance.currentEvent == DailyEvent.Illness)
@@ -147,6 +160,10 @@ public class PlayerController : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(move);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * 100f * Time.deltaTime);
         }
+        else
+        {
+            if (animator != null) animator.SetBool("IsWalking", false);
+        }
 
         // Apply constant gravity
         if (!characterController.isGrounded)
@@ -157,6 +174,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInteractionDetection()
     {
+        currentInteractable = null;
+
         if (interactionRod != null)
         {
             currentInteractable = interactionRod.GetNearestInteractable();
@@ -165,23 +184,20 @@ public class PlayerController : MonoBehaviour
             if (autoInteractOnTouch && currentInteractable != null && !IsHoldingItem())
             {
                 // ONLY auto-interact with things that GIVE items (Supply stations)
-                // We do NOT want to auto-interact with machines (DoughMaker) or counters
                 if (currentInteractable is IngredientRack || currentInteractable is DoughBin || currentInteractable is Dispenser || currentInteractable is TrayBin || currentInteractable is PaperBagBin)
                 {
                     currentInteractable.Interact(this);
                 }
             }
         }
-        else
+        
+        // Fallback robustly to Raycast if the rod failed to catch anything (or doesn't exist)
+        if (currentInteractable == null)
         {
             RaycastHit hit;
             if (Physics.Raycast(transform.position + Vector3.up * 0.5f, transform.forward, out hit, interactionDistance, interactionLayer))
             {
                 currentInteractable = hit.collider.GetComponent<IInteractable>();
-            }
-            else
-            {
-                currentInteractable = null;
             }
         }
     }
@@ -193,26 +209,38 @@ public class PlayerController : MonoBehaviour
     public void PickUpItem(GameObject item)
     {
         if (heldItem != null) return;
+        if (item == null) return;
 
-        Counter.AutoFixBadPivots(item);
-
-        if (SFXManager.Instance != null) SFXManager.Instance.PlayItemGrab();
-
+        // INSTANTLY secure the reference and visually parent it, to guarantee it doesn't float 
+        // randomly in the air if any line below throws a frame-0 exception.
         heldItem = item;
         heldItem.transform.SetParent(holdPoint, true);
         heldItem.transform.localPosition = Vector3.zero;
         heldItem.transform.localRotation = Quaternion.identity;
 
-        // Disable physics if any
+        Counter.AutoFixBadPivots(heldItem);
+
+        // Disable physics immediately
         if (heldItem.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.isKinematic = true;
+            rb.useGravity = false; // Just in case
         }
         
         var colliders = heldItem.GetComponentsInChildren<Collider>();
         foreach (var c in colliders)
         {
             c.enabled = false;
+        }
+
+        // Apply audio & animation (skipped safely on frame 0 saves via Time check)
+        if (SFXManager.Instance != null && Time.time > 0.1f) 
+            SFXManager.Instance.PlayItemGrab();
+
+        if (animator != null)
+        {
+            if (Time.time > 0.1f) animator.SetTrigger("PickUp");
+            animator.SetBool("IsHolding", true);
         }
     }
 
@@ -226,6 +254,9 @@ public class PlayerController : MonoBehaviour
             if (item.TryGetComponent<Rigidbody>(out var rb))
             {
                 rb.isKinematic = false;
+                rb.useGravity = true;
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
             }
             
             var colliders = item.GetComponentsInChildren<Collider>();
@@ -235,6 +266,8 @@ public class PlayerController : MonoBehaviour
                 c.isTrigger = false;
             }
         }
+
+        if (animator != null) animator.SetBool("IsHolding", false);
         return item;
     }
 }

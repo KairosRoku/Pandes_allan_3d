@@ -78,6 +78,7 @@ public class DoughBin : MonoBehaviour, IInteractable, ISaveable
 
     public void RestoreState(StationSaveRecord record)
     {
+        if (record.stockAmount < 0) return;
         doughCount = record.stockAmount;
         UpdateUI();
     }

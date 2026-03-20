@@ -105,6 +105,19 @@ public class MainMenuManager : MonoBehaviour
     public void SelectSlot2() => SelectSlot(2);
     public void SelectSlot3() => SelectSlot(3);
 
+    public void DeleteSlot(int slot)
+    {
+        SaveSystem.DeleteSlot(slot);
+        Debug.Log($"[SAVE] Deleted Save Slot {slot}");
+        UpdateSlotUI(); // Instantly refresh the UI text
+        
+        if (SFXManager.Instance != null) SFXManager.Instance.PlayButtonPress();
+    }
+
+    public void DeleteSlot1() => DeleteSlot(1);
+    public void DeleteSlot2() => DeleteSlot(2);
+    public void DeleteSlot3() => DeleteSlot(3);
+
     public void BackToMainMenu()
     {
         CloseSettings();

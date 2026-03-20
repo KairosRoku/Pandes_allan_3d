@@ -49,6 +49,11 @@ public class DoughMaker3000 : MonoBehaviour, IInteractable
     private bool hasSugar;
     private bool hasWater;
 
+    public bool IsMixing => isMixing;
+    public bool HasFlour => hasFlour;
+    public bool HasSugar => hasSugar;
+    public bool HasWater => hasWater;
+
     private void Awake()
     {
         originalScale = transform.localScale;

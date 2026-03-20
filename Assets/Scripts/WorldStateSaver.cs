@@ -101,7 +101,7 @@ public class WorldStateSaver : MonoBehaviour
                         scenePath   = key,
                         itemType    = ItemType.None,
                         itemCount   = 0,
-                        stockAmount = 0
+                        stockAmount = -1 // -1 preserves inspector defaults for dispensers/racks!
                     });
                 }
             }
@@ -118,7 +118,7 @@ public class WorldStateSaver : MonoBehaviour
                 if (itemData != null)
                 {
                     itemData.itemType = data.heldItem.itemType;
-                    itemData.count    = data.heldItem.itemCount;
+                    itemData.SetCountFromSave(data.heldItem.itemCount);
                 }
                 player.PickUpItem(obj);
             }

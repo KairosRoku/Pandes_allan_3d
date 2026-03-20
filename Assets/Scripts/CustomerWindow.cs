@@ -5,15 +5,12 @@ using System.Collections.Generic;
 public class CustomerWindow : MonoBehaviour, IInteractable
 {
     [Header("Queue System")]
-    public GameObject customerPrefab;
+    [Tooltip("Assign all your different customer prefabs here!")]
+    public GameObject[] customerPrefabs;
     public Transform[] queueSpots; // Assign positions for customers in line
     public int maxQueueSize = 3;
-    
-    private List<Customer> customerQueue = new List<Customer>();
+    [HideInInspector] public List<Customer> customerQueue = new List<Customer>();
     private float spawnTimer = -1f;
-
-    [Header("UI")]
-    public TextMeshProUGUI countText;
 
     private void Start()
     {
@@ -83,11 +80,27 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         }
     }
 
-    private void TrySpawnCustomer()
+    public void TrySpawnCustomer(bool force = false)
     {
-        if (customerQueue.Count >= maxQueueSize || !GameManager.Instance.IsServiceTime()) return;
+        if (!force)
+        {
+            if (customerQueue.Count >= maxQueueSize || !GameManager.Instance.IsServiceTime()) return;
+        }
 
-        GameObject obj = Instantiate(customerPrefab);
+        if (customerPrefabs == null || customerPrefabs.Length == 0) return;
+
+        // Calculate a spawn position slightly behind the very end of the line
+        Vector3 spawnPos = transform.position;
+        if (queueSpots.Length > 0)
+        {
+            Transform lastSpot = queueSpots[queueSpots.Length - 1];
+            // Spawning 5 meters directly behind the last possible spot in line
+            spawnPos = lastSpot.position - (lastSpot.forward * 5f);
+        }
+
+        // Pick a random customer model from the array
+        GameObject randomPrefab = customerPrefabs[Random.Range(0, customerPrefabs.Length)];
+        GameObject obj = Instantiate(randomPrefab, spawnPos, Quaternion.identity);
         Customer c = obj.GetComponent<Customer>();
         
         int req = Random.Range(5, 16);
@@ -115,8 +128,6 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         {
             customerQueue[0].StartServing();
         }
-
-        UpdateUI();
     }
 
     private void UpdateQueuePositions()
@@ -125,8 +136,8 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         {
             if (i < queueSpots.Length)
             {
-                customerQueue[i].transform.position = queueSpots[i].position;
-                customerQueue[i].transform.rotation = queueSpots[i].rotation;
+                // Smoothly walk to their designated spot in line
+                customerQueue[i].MoveToTarget(queueSpots[i].position, queueSpots[i].rotation);
             }
         }
     }
@@ -136,7 +147,11 @@ public class CustomerWindow : MonoBehaviour, IInteractable
         if (customerQueue.Contains(c))
         {
             customerQueue.Remove(c);
-            Destroy(c.gameObject);
+            
+            // Give them a trajectory to leave beautifully offscreen
+            // Walks out to their right and slightly backward away from the window
+            Vector3 exitPos = c.transform.position + (c.transform.right * 10f) + (-c.transform.forward * 2f);
+            c.WalkAway(exitPos);
             
             UpdateQueuePositions();
             
@@ -145,8 +160,6 @@ public class CustomerWindow : MonoBehaviour, IInteractable
             {
                 customerQueue[0].StartServing();
             }
-            
-            UpdateUI();
         }
     }
 
@@ -168,6 +181,8 @@ public class CustomerWindow : MonoBehaviour, IInteractable
                         
                         if (SFXManager.Instance != null) SFXManager.Instance.PlayCustomerPaid();
                         
+                        if (TutorialManager.Instance != null) TutorialManager.Instance.CompleteTutorial();
+
                         GameManager.Instance.AddMoney(payment);
                         Debug.Log("[SERVICE] Order completed!");
 
@@ -187,21 +202,13 @@ public class CustomerWindow : MonoBehaviour, IInteractable
     {
         foreach (var c in customerQueue)
         {
-            if (c != null) Destroy(c.gameObject);
+            if (c != null) 
+            {
+                Vector3 exitPos = c.transform.position + (c.transform.right * 10f) + (-c.transform.forward * 2f);
+                c.WalkAway(exitPos);
+            }
         }
         customerQueue.Clear();
-        UpdateUI();
-    }
-
-    private void UpdateUI()
-    {
-        if (countText != null)
-        {
-            if (customerQueue.Count > 0)
-                countText.text = customerQueue[0].pandesalRequirement.ToString();
-            else
-                countText.text = "";
-        }
     }
 
     public string GetInteractText(PlayerController player)
